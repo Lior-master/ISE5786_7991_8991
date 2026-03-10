@@ -1,10 +1,10 @@
-package geometries;
-
-import static primitives.Util.isZero;
+package geometries.impl;
 
 import java.util.List;
 
 import geometries.api.Geometry;
+
+import static primitives.Util.isZero;
 
 /**
  * Represents a convex polygon in a 3D Cartesian coordinate system.
