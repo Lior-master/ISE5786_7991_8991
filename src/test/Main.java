@@ -1,10 +1,18 @@
 package test;
 
+import geometries.impl.Cylinder;
+import geometries.impl.Plane;
+import geometries.impl.Polygon;
+import geometries.impl.Sphere;
+import geometries.impl.Triangle;
+import geometries.impl.Tube;
+import primitives.Double3;
+import primitives.Point;
+import primitives.Ray;
+import primitives.Vector;
+
 import static java.lang.System.out;
 import static primitives.Util.isZero;
-
-import geometries.impl.*;
-import primitives.*;
 
 /**
  * Basic sanity tests for the primitives classes.
@@ -84,7 +92,7 @@ public final class Main {
      */
     private static void rayTests() {
         Ray r = new Ray(P1, new Vector(2, 4, 6));
-        if (!isZero(r.direction().length() - 1))
+        if (!isZero(r.getDirection().length() - 1))
             out.println("ERROR: Ray direction is not normalized");
     }
 
@@ -233,7 +241,7 @@ public final class Main {
     /**
      * Basic constructor checks for geometry classes.
      * At this stage most geometry constructors only store the given parameters.
-     * Therefore the tests verify mainly that objects can be created successfully.
+     * Therefore, the tests verify mainly that objects can be created successfully.
      * The only geometry that performs structural validation in its constructor
      * is {@link Polygon}, which checks coplanarity, ordering and convexity.
      * However, Polygon is supplied to the students already tested, therefore

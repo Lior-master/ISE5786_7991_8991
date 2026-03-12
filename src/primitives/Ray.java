@@ -9,8 +9,8 @@ import java.util.Objects;
  * normalized in the constructor so each {@code Ray} keeps a unit direction.
  * </p>
  *
- * @author Ben Nakache
  * @author Halimi Lior
+ * @author Nakache Ben
  */
 public class Ray {
 
@@ -36,6 +36,15 @@ public class Ray {
     public Ray(Point _origin, Vector _direction) {
         this._origin = _origin;
         this._direction = _direction.normalize();
+    }
+
+    /**
+     * Returns the unit direction vector of the ray.
+     *
+     * @return the normalized direction vector
+     */
+    public Vector getDirection() {
+        return _direction;
     }
 
     @Override

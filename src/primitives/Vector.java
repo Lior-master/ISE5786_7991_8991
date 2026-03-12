@@ -26,6 +26,8 @@ public class Vector extends Point {
         super(x, y, z);
     }
 
+    public final static Vector AXIS_Z = new Vector(0, 0, 1);
+
     /**
      * Constructs a vector from a {@link Double3} tuple.
      *
@@ -76,6 +78,16 @@ public class Vector extends Point {
                 this._xyz._d3() * v._xyz._d1() - this._xyz._d1() * v._xyz._d3(),
                 this._xyz._d1() * v._xyz._d2() - this._xyz._d2() * v._xyz._d1()
         );
+    }
+
+    @Override
+    public double distanceSquared(Point other) {
+        return super.distanceSquared(other);
+    }
+
+    @Override
+    public double distance(Point other) {
+        return super.distance(other);
     }
 
     /**
