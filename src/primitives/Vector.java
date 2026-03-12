@@ -21,9 +21,8 @@ public class Vector extends Point {
      * @throws IllegalArgumentException if all components are zero
      */
     public Vector(double x, double y, double z) {
-        if (x == 0 && y == 0 && z == 0)
+        if (Util.isZero(x) && Util.isZero(y) && Util.isZero(z))
             throw new IllegalArgumentException("It impossible to create a vector with zero values");
-
         super(x, y, z);
     }
 
