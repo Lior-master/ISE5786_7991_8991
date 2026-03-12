@@ -8,6 +8,9 @@ import java.util.Objects;
  * A ray is defined by an origin point and a direction vector. The direction is
  * normalized in the constructor so each {@code Ray} keeps a unit direction.
  * </p>
+ *
+ * @author Ben Nakache
+ * @author Halimi Lior
  */
 public class Ray {
 
@@ -35,13 +38,6 @@ public class Ray {
         this._direction = _direction.normalize();
     }
 
-    /**
-     * Compares this ray with another object for equality.
-     *
-     * @param obj object to compare with
-     * @return {@code true} if the other object is a ray with equal origin and
-     * equal direction; otherwise {@code false}
-     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
@@ -50,21 +46,13 @@ public class Ray {
         return _origin.equals(other._origin) && _direction.equals(other._direction);
     }
 
-    /**
-     * Returns a string representation of this ray.
-     *
-     * @return textual representation containing origin and direction
-     */
+
     @Override
     public String toString() {
         return "Ray:" + _origin + _direction;
     }
 
-    /**
-     * Returns the hash code of this ray.
-     *
-     * @return hash based on origin and direction
-     */
+
     @Override
     public int hashCode() {
         return Objects.hash(_origin, _direction);

@@ -6,6 +6,9 @@ package primitives;
  * This class extends {@link Point} and reuses its coordinate storage.
  * A vector with components {@code (0,0,0)} is forbidden.
  * </p>
+ *
+ * @author Halimi Lior
+ * @author Ben Nakache
  */
 public class Vector extends Point {
 
@@ -36,12 +39,6 @@ public class Vector extends Point {
         super(xyz);
     }
 
-    /**
-     * Adds another vector to this vector component-wise.
-     *
-     * @param v the vector to add
-     * @return a new vector equal to {@code this + v}
-     */
     @Override
     public Vector add(Vector v) {
         return new Vector(this._xyz.add(v._xyz));
@@ -114,22 +111,11 @@ public class Vector extends Point {
         return new Vector(this._xyz.divide(len));
     }
 
-    /**
-     * Returns a textual representation of the vector.
-     *
-     * @return a string prefixed with {@code "->"} and the coordinate tuple
-     */
     @Override
     public String toString() {
         return "->" + super.toString();
     }
 
-    /**
-     * Compares this vector to another object.
-     *
-     * @param obj object to compare with
-     * @return {@code true} if both objects are vectors with equal coordinates
-     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;

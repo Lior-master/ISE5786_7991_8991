@@ -7,6 +7,9 @@ package primitives;
  * as a {@link Double3} value. This class serves as the base class for
  * {@link Vector}.
  * </p>
+ *
+ * @author Halimi Lior
+ * @author Ben Nakache
  */
 public class Point {
     /**
@@ -89,22 +92,11 @@ public class Point {
         return Math.sqrt(distanceSquared(other));
     }
 
-    /**
-     * Returns a string representation of this point.
-     *
-     * @return the point coordinates in tuple form
-     */
     @Override
     public String toString() {
         return "" + _xyz;
     }
 
-    /**
-     * Compares this point with another object.
-     *
-     * @param obj object to compare with
-     * @return {@code true} if the other object is a point with equal coordinates
-     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
@@ -112,11 +104,6 @@ public class Point {
         return _xyz.equals(((Point) obj)._xyz);
     }
 
-    /**
-     * Returns the hash code value for this point.
-     *
-     * @return hash code derived from the coordinate triple
-     */
     @Override
     public int hashCode() {
         return _xyz.hashCode();
