@@ -76,8 +76,10 @@ public class Point {
     }
 
     /**
+     * Computes the Euclidean distance between this point and another point.
      * <p>
-     * Computes the distance with distanceSquared function
+     * This method delegates to {@link #distanceSquared(Point)} and applies a
+     * square root to obtain the actual distance.
      * </p>
      *
      * @param other the other point
@@ -85,5 +87,38 @@ public class Point {
      */
     public double distance(Point other) {
         return Math.sqrt(distanceSquared(other));
+    }
+
+    /**
+     * Returns a string representation of this point.
+     *
+     * @return the point coordinates in tuple form
+     */
+    @Override
+    public String toString() {
+        return "" + _xyz;
+    }
+
+    /**
+     * Compares this point with another object.
+     *
+     * @param obj object to compare with
+     * @return {@code true} if the other object is a point with equal coordinates
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        return _xyz.equals(((Point) obj)._xyz);
+    }
+
+    /**
+     * Returns the hash code value for this point.
+     *
+     * @return hash code derived from the coordinate triple
+     */
+    @Override
+    public int hashCode() {
+        return _xyz.hashCode();
     }
 }

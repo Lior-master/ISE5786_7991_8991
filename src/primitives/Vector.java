@@ -1,10 +1,10 @@
 package primitives;
 
 /**
- * Represents a 3D vector in space.
+ * Represents a non-zero 3D vector in Cartesian space.
  * <p>
- * This class extends {@link Point} to reuse coordinate storage.
- * A zero vector (0,0,0) is not allowed.
+ * This class extends {@link Point} and reuses its coordinate storage.
+ * A vector with components {@code (0,0,0)} is forbidden.
  * </p>
  */
 public class Vector extends Point {
@@ -37,10 +37,10 @@ public class Vector extends Point {
     }
 
     /**
-     * Adds this vector to another vector.
+     * Adds another vector to this vector component-wise.
      *
      * @param v the vector to add
-     * @return a new vector equal to the vector sum
+     * @return a new vector equal to {@code this + v}
      */
     @Override
     public Vector add(Vector v) {
@@ -58,7 +58,7 @@ public class Vector extends Point {
     }
 
     /**
-     * Computes the dot product with another vector.
+     * Computes the scalar (dot) product with another vector.
      *
      * @param v the other vector
      * @return the dot product value
@@ -69,10 +69,10 @@ public class Vector extends Point {
     }
 
     /**
-     * Computes the cross product with another vector.
+     * Computes the vector (cross) product with another vector.
      *
      * @param v the other vector
-     * @return a new vector orthogonal to both vectors
+     * @return a new vector orthogonal to both operands
      */
     public Vector crossProduct(Vector v) {
         return new Vector(
@@ -102,9 +102,9 @@ public class Vector extends Point {
     }
 
     /**
-     * Returns the normalized (unit-length) vector in the same direction.
+     * Returns a normalized (unit-length) vector in the same direction.
      *
-     * @return a new normalized vector
+     * @return a new unit vector with the same direction as this vector
      * @throws ArithmeticException if the vector length is zero
      */
     public Vector normalize() {
@@ -112,5 +112,28 @@ public class Vector extends Point {
         if (Util.isZero(len))
             throw new ArithmeticException("Cannot normalize a zero-length vector");
         return new Vector(this._xyz.divide(len));
+    }
+
+    /**
+     * Returns a textual representation of the vector.
+     *
+     * @return a string prefixed with {@code "->"} and the coordinate tuple
+     */
+    @Override
+    public String toString() {
+        return "->" + super.toString();
+    }
+
+    /**
+     * Compares this vector to another object.
+     *
+     * @param obj object to compare with
+     * @return {@code true} if both objects are vectors with equal coordinates
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        return super.equals(obj);
     }
 }
