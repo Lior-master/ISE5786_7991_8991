@@ -12,7 +12,7 @@ import primitives.Vector;
  * @author Halimi Lior
  * @author Nakache Ben
  */
-public class RadialGeometry extends Geometry {
+public abstract class RadialGeometry extends Geometry {
     /**
      * The radius of the radial geometry.
      */

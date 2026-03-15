@@ -13,20 +13,6 @@ package primitives;
 public class Vector extends Point {
 
     /**
-     * Constructs a vector from its three components.
-     *
-     * @param x the X component
-     * @param y the Y component
-     * @param z the Z component
-     * @throws IllegalArgumentException if all components are zero
-     */
-    public Vector(double x, double y, double z) {
-        if (Util.isZero(x) && Util.isZero(y) && Util.isZero(z))
-            throw new IllegalArgumentException("It impossible to create a vector with zero values");
-        super(x, y, z);
-    }
-
-    /**
      * Unit vector along the Z axis {@code (0, 0, 1)}.
      */
     public final static Vector AXIS_Z = new Vector(0, 0, 1);
@@ -40,6 +26,21 @@ public class Vector extends Point {
      * Unit vector along the Y axis {@code (0, 1, 0)}.
      */
     public final static Vector AXIS_Y = new Vector(0, 1, 0);
+
+    /**
+     * Constructs a vector from its three components.
+     *
+     * @param x the X component
+     * @param y the Y component
+     * @param z the Z component
+     * @throws IllegalArgumentException if all components are zero
+     */
+    public Vector(double x, double y, double z) {
+        if (Util.isZero(x) && Util.isZero(y) && Util.isZero(z))
+            throw new IllegalArgumentException("It impossible to create a vector with zero values");
+        super(x, y, z);
+    }
+
 
     /**
      * Constructs a vector from a {@link Double3} tuple.
@@ -85,11 +86,11 @@ public class Vector extends Point {
      * @return a new vector orthogonal to both operands
      */
     public Vector crossProduct(Vector v) {
-        return new Vector(
-                this._xyz._d2() * v._xyz._d3() - this._xyz._d3() * v._xyz._d2(),
-                this._xyz._d3() * v._xyz._d1() - this._xyz._d1() * v._xyz._d3(),
-                this._xyz._d1() * v._xyz._d2() - this._xyz._d2() * v._xyz._d1()
-        );
+        double x = this._xyz._d2() * v._xyz._d3() - this._xyz._d3() * v._xyz._d2();
+        double y = this._xyz._d3() * v._xyz._d1() - this._xyz._d1() * v._xyz._d3();
+        double z = this._xyz._d1() * v._xyz._d2() - this._xyz._d2() * v._xyz._d1();
+
+        return new Vector(x, y, z);
     }
 
     /**
