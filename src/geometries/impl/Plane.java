@@ -32,7 +32,9 @@ public class Plane extends Geometry {
      * @param p3 the third point on the plane
      */
     public Plane(Point p1, Point p2, Point p3) {
-        this(p1, null);
+
+        _point = p1;
+        _normal = null;
     }
 
     /**
