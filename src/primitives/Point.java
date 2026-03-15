@@ -75,7 +75,10 @@ public class Point {
      * @return the squared distance between {@code this} and {@code other}
      */
     public double distanceSquared(Point other) {
-        return Math.pow((_xyz._d1() - other._xyz._d1()), 2) + Math.pow((_xyz._d2() - other._xyz._d2()), 2) + Math.pow((_xyz._d3() - other._xyz._d3()), 2);
+        double dx = _xyz._d1() - other._xyz._d1();
+        double dy = _xyz._d2() - other._xyz._d2();
+        double dz = _xyz._d3() - other._xyz._d3();
+        return dx * dx + dy * dy + dz * dz;
     }
 
     /**

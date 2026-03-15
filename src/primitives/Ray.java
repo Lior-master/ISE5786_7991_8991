@@ -43,8 +43,17 @@ public class Ray {
      *
      * @return the normalized direction vector
      */
-    public Vector getDirection() {
+    public Vector direction() {
         return _direction;
+    }
+
+    /**
+     * Returns the origin point of the ray.
+     *
+     * @return the starting point of the ray
+     */
+    public Point origin() {
+        return _origin;
     }
 
     @Override

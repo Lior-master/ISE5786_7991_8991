@@ -26,7 +26,20 @@ public class Vector extends Point {
         super(x, y, z);
     }
 
+    /**
+     * Unit vector along the Z axis {@code (0, 0, 1)}.
+     */
     public final static Vector AXIS_Z = new Vector(0, 0, 1);
+
+    /**
+     * Unit vector along the X axis {@code (1, 0, 0)}.
+     */
+    public final static Vector AXIS_X = new Vector(1, 0, 0);
+
+    /**
+     * Unit vector along the Y axis {@code (0, 1, 0)}.
+     */
+    public final static Vector AXIS_Y = new Vector(0, 1, 0);
 
     /**
      * Constructs a vector from a {@link Double3} tuple.
@@ -62,8 +75,7 @@ public class Vector extends Point {
      * @return the dot product value
      */
     public double dotProduct(Vector v) {
-        Double3 result = this._xyz.product(v._xyz);
-        return result._d1() + result._d2() + result._d3();
+        return this._xyz._d1() * v._xyz._d1() + this._xyz._d2() * v._xyz._d2() + this._xyz._d3() * v._xyz._d3();
     }
 
     /**
@@ -78,16 +90,6 @@ public class Vector extends Point {
                 this._xyz._d3() * v._xyz._d1() - this._xyz._d1() * v._xyz._d3(),
                 this._xyz._d1() * v._xyz._d2() - this._xyz._d2() * v._xyz._d1()
         );
-    }
-
-    @Override
-    public double distanceSquared(Point other) {
-        return super.distanceSquared(other);
-    }
-
-    @Override
-    public double distance(Point other) {
-        return super.distance(other);
     }
 
     /**

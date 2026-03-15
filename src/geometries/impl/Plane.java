@@ -16,7 +16,7 @@ public class Plane extends Geometry {
     /**
      * A point on the plane.
      */
-    private final Point _q;
+    private final Point _point;
 
     /**
      * The normal vector to the plane.
@@ -32,7 +32,7 @@ public class Plane extends Geometry {
      * @param p3 the third point on the plane
      */
     public Plane(Point p1, Point p2, Point p3) {
-        this(p1, p2.subtract(p1).crossProduct(p3.subtract(p1)).normalize());
+        this(p1, null);
     }
 
     /**
@@ -42,7 +42,7 @@ public class Plane extends Geometry {
      * @param normal the normal vector to the plane (will be normalized)
      */
     public Plane(Point q, Vector normal) {
-        _q = q;
+        _point = q;
         _normal = normal.normalize();
     }
 
