@@ -1,32 +1,34 @@
 package primitives;
 
+import org.junit.jupiter.api.Test;
+
 class PointTest {
 
-    @org.junit.jupiter.api.Test
+    @Test
     void subtract() {
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void add() {
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void distanceSquared() {
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void distance() {
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void testToString() {
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void testEquals() {
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void testHashCode() {
     }
 }
