@@ -19,16 +19,4 @@ class PointTest {
     @Test
     void distance() {
     }
-
-    @Test
-    void testToString() {
-    }
-
-    @Test
-    void testEquals() {
-    }
-
-    @Test
-    void testHashCode() {
-    }
 }

@@ -1,36 +1,43 @@
 package primitives;
 
+import org.junit.jupiter.api.Test;
+
 class VectorTest {
 
-    @org.junit.jupiter.api.Test
+    @Test
+    void testConstructor() {
+
+    }
+
+    @Test
     void add() {
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void scale() {
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void dotProduct() {
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void crossProduct() {
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void lengthSquared() {
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void length() {
     }
 
-    @org.junit.jupiter.api.Test
+    @Test
     void normalize() {
     }
 
-    @org.junit.jupiter.api.Test
-    void testEquals() {
+    @Test
+    void subtract() {
     }
 }
