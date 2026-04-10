@@ -1,6 +1,8 @@
 package geometries.impl;
 
+import primitives.Point;
 import primitives.Ray;
+import primitives.Vector;
 
 /**
  * Represents an infinite tube in 3D space.
@@ -24,5 +26,17 @@ public class Tube extends RadialGeometry {
     public Tube(double _radius, Ray _axis) {
         super(_radius);
         this._axis = _axis;
+    }
+
+    @Override
+    public Vector getNormal(Point point) {
+        Point p0 = _axis.origin();
+        Vector dir = _axis.direction();
+
+        double t = dir.dotProduct(point.subtract(p0));
+
+        Point o = primitives.Util.isZero(t) ? p0 : p0.add(dir.scale(t));
+
+        return point.subtract(o).normalize();
     }
 }

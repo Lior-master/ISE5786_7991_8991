@@ -1,6 +1,7 @@
 package geometries.impl;
 
 import primitives.Point;
+import primitives.Vector;
 
 /**
  * Represents a sphere in 3D space.
@@ -24,5 +25,10 @@ public class Sphere extends RadialGeometry {
     public Sphere(Point center, double _radius) {
         super(_radius);
         this._center = center;
+    }
+
+    @Override
+    public Vector getNormal(Point point) {
+        return point.subtract(_center).normalize();
     }
 }
