@@ -34,19 +34,25 @@ public class Cylinder extends Tube {
         Point p0 = _axis.origin();
         Vector dir = _axis.direction();
 
-        double t = primitives.Util.alignZero(dir.dotProduct(point.subtract(p0)));
+        if (point.equals(p0)) {
+            return dir.scale(-1);
+        }
 
-        // bottom base
+        Point topCenter = p0.add(dir.scale(_height));
+        if (point.equals(topCenter)) {
+            return dir;
+        }
+
+        double t = dir.dotProduct(point.subtract(p0));
+
         if (primitives.Util.isZero(t)) {
             return dir.scale(-1);
         }
 
-        // top base
         if (primitives.Util.isZero(t - _height)) {
             return dir;
         }
 
-        // side surface
         Point o = p0.add(dir.scale(t));
         return point.subtract(o).normalize();
     }
