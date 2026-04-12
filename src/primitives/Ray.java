@@ -56,6 +56,16 @@ public class Ray {
         return _origin;
     }
 
+    /**
+     * Because DRY this function calculate intersection with the ray
+     *
+     * @param t the distance from the ray's origin to the intersection point
+     * @return the intersection with the ray
+     */
+    public Point getPoint(Double t) {
+        return null;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
