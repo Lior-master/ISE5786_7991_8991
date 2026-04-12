@@ -93,12 +93,12 @@ class SphereTests {
                 ERROR_SPHERE_INTERSECTION);
 
         // EP02: Ray starts before and crosses the sphere (2 points)
-        Point intersection1 = new Point(0.0651530771650466, 2.355051025721682, 3);
-        Point intersection2 = new Point(1.5348469228349535, 2.844948974278318, 3);
+        Point intersection1 = new Point(-0.9703293088490064, 2.343223563716998, 3);
+        Point intersection2 = new Point(2.370329308849005, 3.456776436283002, 3);
         List<Point> expected1 = List.of(intersection1, intersection2);
-
+        
         final var result1 = SPHERE.findIntersections(new Ray(
-                new Point(-1, 2, 3),
+                new Point(-2, 2, 3),
                 new Vector(3, 1, 0)));
         assertNotNull(result1, ERROR_SPHERE_INTERSECTION);
         assertEquals(2, result1.size(), ERROR_SPHERE_INTERSECTION);

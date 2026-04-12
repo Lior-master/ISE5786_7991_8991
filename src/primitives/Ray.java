@@ -64,7 +64,7 @@ public class Ray {
      * @param t the signed distance from the ray origin
      * @return the computed point
      */
-    public Point getPoint(Double t) {
+    public Point getPoint(double t) {
         return isZero(t) ? _origin : _origin.add(_direction.scale(t));
     }
 

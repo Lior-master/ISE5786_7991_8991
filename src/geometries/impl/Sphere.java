@@ -7,7 +7,6 @@ import primitives.Ray;
 import primitives.Vector;
 
 import static primitives.Util.alignZero;
-import static primitives.Util.isZero;
 
 /**
  * Represents a sphere in 3D space.
@@ -43,7 +42,7 @@ public class Sphere extends RadialGeometry {
         Point p0 = ray.origin();
         Vector v = ray.direction();
 
-        // Special case: ray starts at sphere center
+        // Special case: ray starts at the sphere center
         if (_center.equals(p0)) {
             return List.of(ray.getPoint(_radius));
         }
@@ -52,21 +51,18 @@ public class Sphere extends RadialGeometry {
 
         double tm = alignZero(v.dotProduct(u));
         double dSquared = alignZero(u.lengthSquared() - tm * tm);
-        double rSquared = _radius * _radius;
 
-        // No intersections: line misses sphere or is tangent
-        if (dSquared >= rSquared || isZero(dSquared - rSquared)) {
+        // No intersections: the ray misses the sphere or is tangent to it
+        if (alignZero(dSquared - _radiusSquared) >= 0) {
             return null;
         }
 
-        double th = Math.sqrt(rSquared - dSquared);
+        double th = Math.sqrt(_radiusSquared - dSquared);
         double t1 = alignZero(tm - th);
         double t2 = alignZero(tm + th);
 
         if (t1 > 0 && t2 > 0) {
-            Point p1 = ray.getPoint(t1);
-            Point p2 = ray.getPoint(t2);
-            return t1 < t2 ? List.of(p1, p2) : List.of(p2, p1);
+            return List.of(ray.getPoint(t1), ray.getPoint(t2));
         }
 
         if (t1 > 0) {
