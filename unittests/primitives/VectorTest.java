@@ -106,6 +106,25 @@ class VectorTests {
     private static final String ERROR_EXCEPTION = "ERROR: expected exception was not thrown";
 
     /**
+     * test method for {@link Vector#Vector(double, double, double)} and for {@link Vector#Vector(Double3)}.
+     * Verifies that a vector is constructed correctly and that constructing a zero vector throws an exception.
+     */
+    @Test
+    void testConstructors() {
+        // ============ Equivalence Partitions Tests ==============
+
+        // EP01: Constructing a valid vector should not throw
+        assertDoesNotThrow(() -> new Vector(1, 2, 3), ERROR_EXCEPTION);
+        assertDoesNotThrow(() -> new Vector(new Double3(1, 2, 3)), ERROR_EXCEPTION);
+
+        // =============== Boundary Values Tests ==================
+
+        // BV01: Constructing a zero vector should throw exception
+        assertThrows(IllegalArgumentException.class, () -> new Vector(0, 0, 0), ERROR_EXCEPTION);
+        assertThrows(IllegalArgumentException.class, () -> new Vector(new Double3(0, 0, 0)), ERROR_EXCEPTION);
+    }
+
+    /**
      * Test method for {@link Vector#add(Vector)}.
      * Verifies vector addition and zero-vector boundary case.
      */

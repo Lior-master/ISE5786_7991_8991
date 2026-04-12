@@ -9,6 +9,9 @@ import primitives.Vector;
 import static primitives.Util.alignZero;
 import static primitives.Util.isZero;
 
+/**
+ * Represents a triangle in 3D space defined by three vertices. This class extends the {@link Polygon} class, which provides common functionality for polygons, such as storing vertices and defining a plane. The triangle is a specific type of polygon with exactly three vertices. The class includes a constructor to initialize the triangle with its vertices and an implementation of the {@code findIntersections} method to determine if a given ray intersects the triangle, and if so, where the intersection points are located.
+ */
 public class Triangle extends Polygon {
     /**
      * Constructs a triangle from three vertices.

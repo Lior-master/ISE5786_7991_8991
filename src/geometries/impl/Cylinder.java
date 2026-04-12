@@ -37,9 +37,8 @@ public class Cylinder extends Tube {
         if (point.equals(p0)) {
             return dir.scale(-1);
         }
-
-        Point topCenter = p0.add(dir.scale(_height));
-        if (point.equals(topCenter)) {
+        
+        if (point.equals(p0.add(dir.scale(_height)))) {
             return dir;
         }
 
@@ -52,8 +51,6 @@ public class Cylinder extends Tube {
         if (primitives.Util.isZero(t - _height)) {
             return dir;
         }
-
-        Point o = p0.add(dir.scale(t));
-        return point.subtract(o).normalize();
+        return super.getNormal(point);
     }
 }
