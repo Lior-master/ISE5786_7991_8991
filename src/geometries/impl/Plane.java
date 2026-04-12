@@ -7,6 +7,9 @@ import primitives.Point;
 import primitives.Ray;
 import primitives.Vector;
 
+import static primitives.Util.alignZero;
+import static primitives.Util.isZero;
+
 /**
  * Represents an infinite plane in 3D space defined by a point and a normal vector.
  * The plane can be constructed from three non-collinear points or from a point and a normal vector.
@@ -35,7 +38,6 @@ public class Plane extends Geometry {
      * @param p3 the third point on the plane
      */
     public Plane(Point p1, Point p2, Point p3) {
-
         _point = p1;
         _normal = (p2.subtract(p1)).crossProduct(p3.subtract(p1)).normalize();
     }
@@ -58,7 +60,19 @@ public class Plane extends Geometry {
 
     @Override
     public List<Point> findIntersections(Ray ray) {
-        return null;
+        Point p0 = ray.origin();
+        Vector v = ray.direction();
+
+        if (_point.equals(p0)) return null;
+
+        double nv = _normal.dotProduct(v);
+
+        // no intersection – the ray is parallel to the plane
+        if (isZero(nv)) return null;
+
+        double t = alignZero(_normal.dotProduct(_point.subtract(p0)) / nv);
+
+        // there is intersection only if it is in the direction of the ray
+        return t <= 0 ? null : List.of(ray.getPoint(t));
     }
 }
-
