@@ -22,42 +22,65 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  * Equivalence Partitions (EP) and Boundary Values (BVA).
  */
 class TriangleTests {
+
     /**
-     * Default constructor to satisfy JavaDoc generator
+     * Default constructor to satisfy JavaDoc generator.
      */
     TriangleTests() { /* to satisfy JavaDoc generator */ }
 
     /**
-     * First vertex of the triangle
+     * First vertex of the triangle used in normal tests.
      */
     private static final Point P1 = new Point(1, 0, 0);
+
     /**
-     * Second vertex of the triangle
+     * Second vertex of the triangle used in normal tests.
      */
     private static final Point P2 = new Point(0, 1, 0);
+
     /**
-     * Third vertex of the triangle
+     * Third vertex of the triangle used in normal tests.
      */
     private static final Point P3 = new Point(0, 0, 1);
 
     /**
-     * A point inside the triangle, on its plane
+     * Point inside the triangle, on its plane, used in normal test.
      */
     private static final Point POINT_INSIDE = new Point(0.25, 0.25, 0.5);
 
     /**
-     * Delta value for accuracy when comparing double values
+     * Triangle used in getNormal test.
+     */
+    private static final Triangle TRIANGLE_NORMAL = new Triangle(P1, P2, P3);
+
+    /**
+     * Triangle used in findIntersections tests.
+     */
+    private static final Triangle TRIANGLE_INTERSECTIONS = new Triangle(
+            new Point(0, 0, 1),
+            new Point(2, 0, 1),
+            new Point(0, 2, 1)
+    );
+
+    /**
+     * Delta value for accuracy when comparing double values.
      */
     private static final double DELTA = 1e-6;
 
     /**
-     * Error message for unexpected exception
+     * Error message for unexpected exception.
      */
-    private static final String ERROR_EXCEPTION = "ERROR: getNormal() threw unexpected exception";
+    private static final String ERROR_EXCEPTION = "Unexpected exception was thrown";
+
     /**
-     * Error message for wrong triangle normal
+     * Error message for wrong triangle normal.
      */
-    private static final String ERROR_NORMAL = "ERROR: Triangle normal is wrong";
+    private static final String ERROR_NORMAL = "Wrong triangle normal";
+
+    /**
+     * Error message for wrong triangle intersection result.
+     */
+    private static final String ERROR_TRIANGLE_INTERSECTION = "Wrong triangle intersection result";
 
     /**
      * Test method for {@link Triangle#getNormal(Point)}.
@@ -66,19 +89,15 @@ class TriangleTests {
      */
     @Test
     void testGetNormal() {
-        Triangle triangle = new Triangle(P1, P2, P3);
-
         // ============ Equivalence Partitions Tests ==============
 
         // EP01: getNormal() at a regular point on the triangle
-        assertDoesNotThrow(() -> triangle.getNormal(POINT_INSIDE), ERROR_EXCEPTION);
+        assertDoesNotThrow(() -> TRIANGLE_NORMAL.getNormal(POINT_INSIDE), ERROR_EXCEPTION);
 
-        Vector result = triangle.getNormal(POINT_INSIDE);
+        Vector result = TRIANGLE_NORMAL.getNormal(POINT_INSIDE);
 
-        // Ensure |n| = 1
         assertEquals(1d, result.length(), DELTA, ERROR_NORMAL);
 
-        // Ensure normal is orthogonal to triangle edges
         Vector edge1 = P2.subtract(P1);
         Vector edge2 = P3.subtract(P2);
         Vector edge3 = P1.subtract(P3);
@@ -93,44 +112,57 @@ class TriangleTests {
      */
     @Test
     void testFindIntersections() {
-        Triangle triangle = new Triangle(
-                new Point(0, 0, 1),
-                new Point(2, 0, 1),
-                new Point(0, 2, 1));
-
         // ============ Equivalence Partitions Tests ==============
 
-        // TC01 (EP): Ray intersects inside the triangle
+        // EP01: Ray intersects inside the triangle
         assertEquals(
                 List.of(new Point(0.5, 0.5, 1)),
-                triangle.findIntersections(new Ray(new Point(0, 0, 0), new Vector(1, 1, 2))),
-                "Ray should intersect inside the triangle");
+                TRIANGLE_INTERSECTIONS.findIntersections(new Ray(
+                        new Point(0, 0, 0),
+                        new Vector(1, 1, 2))),
+                ERROR_TRIANGLE_INTERSECTION
+        );
 
-        // TC02 (EP): Ray intersects the plane outside the triangle against an edge
+        // EP02: Ray intersects the plane outside the triangle against an edge
         assertNull(
-                triangle.findIntersections(new Ray(new Point(0, 0, 0), new Vector(3, 3, 2))),
-                "Ray intersecting outside against an edge must not intersect the triangle");
+                TRIANGLE_INTERSECTIONS.findIntersections(new Ray(
+                        new Point(0, 0, 0),
+                        new Vector(3, 3, 2))),
+                ERROR_TRIANGLE_INTERSECTION
+        );
 
-        // TC03 (EP): Ray intersects the plane outside the triangle against a vertex
+        // EP03: Ray intersects the plane outside the triangle against a vertex
         assertNull(
-                triangle.findIntersections(new Ray(new Point(0, 0, 0), new Vector(-1, 1, 1))),
-                "Ray intersecting outside against a vertex must not intersect the triangle");
+                TRIANGLE_INTERSECTIONS.findIntersections(new Ray(
+                        new Point(0, 0, 0),
+                        new Vector(-1, 1, 1))),
+                ERROR_TRIANGLE_INTERSECTION
+        );
 
         // =============== Boundary Values Tests ==================
 
-        // TC11 (BV): Ray intersects exactly on an edge
+        // BV01: Ray intersects exactly on an edge
         assertNull(
-                triangle.findIntersections(new Ray(new Point(0, 0, 0), new Vector(1, 0, 1))),
-                "Ray intersecting on an edge must not intersect the triangle");
+                TRIANGLE_INTERSECTIONS.findIntersections(new Ray(
+                        new Point(0, 0, 0),
+                        new Vector(1, 0, 1))),
+                ERROR_TRIANGLE_INTERSECTION
+        );
 
-        // TC12 (BV): Ray intersects exactly at a vertex
+        // BV02: Ray intersects exactly at a vertex
         assertNull(
-                triangle.findIntersections(new Ray(new Point(0, 0, 0), new Vector(2, 0, 1))),
-                "Ray intersecting at a vertex must not intersect the triangle");
+                TRIANGLE_INTERSECTIONS.findIntersections(new Ray(
+                        new Point(0, 0, 0),
+                        new Vector(2, 0, 1))),
+                ERROR_TRIANGLE_INTERSECTION
+        );
 
-        // TC13 (BV): Ray intersects on an edge continuation
+        // BV03: Ray intersects on an edge continuation
         assertNull(
-                triangle.findIntersections(new Ray(new Point(0, 0, 0), new Vector(3, 0, 1))),
-                "Ray intersecting on an edge continuation must not intersect the triangle");
+                TRIANGLE_INTERSECTIONS.findIntersections(new Ray(
+                        new Point(0, 0, 0),
+                        new Vector(3, 0, 1))),
+                ERROR_TRIANGLE_INTERSECTION
+        );
     }
 }

@@ -24,25 +24,25 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * Tests follow the methodology of
  * Equivalence Partitions (EP) and Boundary Values (BVA).
  */
-class PlaneTest {
+class PlaneTests {
 
     /**
      * Default constructor to satisfy JavaDoc generator.
      */
-    PlaneTest() { /* to satisfy JavaDoc generator */ }
+    PlaneTests() { /* to satisfy JavaDoc generator */ }
 
     /**
-     * A reference point on the test plane.
+     * Reference point on the test plane z = 3.
      */
     private static final Point Q0 = new Point(1, 2, 3);
 
     /**
-     * A second point that lies on the same plane z=3.
+     * Another point on the same plane z = 3.
      */
     private static final Point POINT_ON_PLANE = new Point(5, -1, 3);
 
     /**
-     * A non-unit normal vector (length = 5).
+     * Non-unit normal vector used in constructor test.
      */
     private static final Vector NORMAL_NON_UNIT = new Vector(0, 3, 4);
 
@@ -52,28 +52,49 @@ class PlaneTest {
     private static final Vector NORMAL_UNIT = new Vector(0, 0.6, 0.8);
 
     /**
+     * Plane z = 3 used in getNormal and constructor tests.
+     */
+    private static final Plane PLANE_Z3 = new Plane(Q0, Vector.AXIS_Z);
+
+    /**
+     * Plane z = 1 used in intersection tests.
+     */
+    private static final Plane PLANE_Z1 = new Plane(new Point(0, 0, 1), new Vector(0, 0, 1));
+
+    /**
      * Delta value for floating-point comparisons.
      */
     private static final double DELTA = 1e-10;
+
+    /**
+     * Error message for wrong normal.
+     */
+    private static final String ERROR_NORMAL = "Wrong plane normal";
+
+    /**
+     * Error message for wrong plane intersection result.
+     */
+    private static final String ERROR_PLANE_INTERSECTION = "Wrong plane intersection result";
+
+    /**
+     * Error message for unexpected exception.
+     */
+    private static final String ERROR_EXCEPTION = "Unexpected exception was thrown";
 
     /**
      * Test method for {@link Plane#getNormal(Point)}.
      */
     @Test
     void testGetNormal() {
-
         // ============ Equivalence Partitions Tests ==============
-        Plane plane = new Plane(Q0, Vector.AXIS_Z); // plane z = 3
 
-        // TC01 (EP): Point on plane but different from reference point
-        assertEquals(Vector.AXIS_Z, plane.getNormal(POINT_ON_PLANE),
-                "getNormal() returned wrong normal for a non-reference point on the plane");
+        // EP01: Point on plane but different from reference point
+        assertEquals(Vector.AXIS_Z, PLANE_Z3.getNormal(POINT_ON_PLANE), ERROR_NORMAL);
 
         // =============== Boundary Values Tests ==================
 
-        // TC11 (BV): Reference point itself
-        assertEquals(Vector.AXIS_Z, plane.getNormal(Q0),
-                "getNormal() returned wrong normal for the plane reference point");
+        // BV01: Reference point itself
+        assertEquals(Vector.AXIS_Z, PLANE_Z3.getNormal(Q0), ERROR_NORMAL);
     }
 
     /**
@@ -81,15 +102,12 @@ class PlaneTest {
      */
     @Test
     void testConstructorPointVector() {
-
         // ============ Equivalence Partitions Tests ==============
 
-        // TC01 (EP): Normal vector is normalized by constructor
+        // EP01: Constructor normalizes the given normal vector
         Plane plane = new Plane(Q0, NORMAL_NON_UNIT);
-        assertEquals(NORMAL_UNIT, plane.getNormal(Q0),
-                "Plane(Point, Vector) did not normalize the normal vector");
-        assertEquals(1d, plane.getNormal(Q0).length(), DELTA,
-                "Plane(Point, Vector) returned a non-unit normal");
+        assertEquals(NORMAL_UNIT, plane.getNormal(Q0), ERROR_NORMAL);
+        assertEquals(1d, plane.getNormal(Q0).length(), DELTA, ERROR_NORMAL);
     }
 
     /**
@@ -97,52 +115,51 @@ class PlaneTest {
      */
     @Test
     void testConstructorThreePoints() {
-
         // ============ Equivalence Partitions Tests ==============
 
-        // TC01 (EP): Three distinct non-collinear points
+        // EP01: Three distinct non-collinear points
         assertDoesNotThrow(() -> new Plane(
                         new Point(0, 0, 1),
                         new Point(1, 0, 1),
                         new Point(0, 1, 1)),
-                "Failed constructing plane from 3 distinct non-collinear points");
+                ERROR_EXCEPTION);
 
         // =============== Boundary Values Tests ==================
 
-        // TC11 (BV): First and second points are the same
+        // BV01: First and second points are the same
         assertThrows(IllegalArgumentException.class, () -> new Plane(
                         new Point(0, 0, 1),
                         new Point(0, 0, 1),
                         new Point(0, 1, 1)),
-                "Constructed a plane when points 1 and 2 are identical");
+                ERROR_EXCEPTION);
 
-        // TC12 (BV): First and third points are the same
+        // BV02: First and third points are the same
         assertThrows(IllegalArgumentException.class, () -> new Plane(
                         new Point(0, 0, 1),
                         new Point(1, 0, 1),
                         new Point(0, 0, 1)),
-                "Constructed a plane when points 1 and 3 are identical");
+                ERROR_EXCEPTION);
 
-        // TC13 (BV): Second and third points are the same
+        // BV03: Second and third points are the same
         assertThrows(IllegalArgumentException.class, () -> new Plane(
                         new Point(0, 0, 1),
                         new Point(1, 0, 1),
                         new Point(1, 0, 1)),
-                "Constructed a plane when points 2 and 3 are identical");
+                ERROR_EXCEPTION);
 
-        // TC14 (BV): All three points are the same
+        // BV04: All three points are the same
         assertThrows(IllegalArgumentException.class, () -> new Plane(
                         new Point(2, 2, 2),
                         new Point(2, 2, 2),
                         new Point(2, 2, 2)),
-                "Constructed a plane with three identical points");
+                ERROR_EXCEPTION);
 
-        // TC15 (BV): All three points are collinear
+        // BV05: All three points are collinear
         assertThrows(IllegalArgumentException.class, () -> new Plane(
                         new Point(0, 0, 0),
                         new Point(1, 1, 1),
                         new Point(2, 2, 2)),
-                "Constructed a plane with three collinear points");
+                ERROR_EXCEPTION);
     }
 
     /**
@@ -150,58 +167,55 @@ class PlaneTest {
      */
     @Test
     void testFindIntersections() {
-
-        Plane plane = new Plane(new Point(0, 0, 1), new Vector(0, 0, 1));
-
         // ============ Equivalence Partitions Tests ==============
 
-        // TC01 (EP): Ray is neither orthogonal nor parallel to the plane and intersects it
+        // EP01: Ray is neither orthogonal nor parallel to the plane and intersects it
         assertEquals(
                 List.of(new Point(1, 1, 1)),
-                plane.findIntersections(new Ray(new Point(0, 0, 0), new Vector(1, 1, 1))),
-                "Ray should intersect the plane");
+                PLANE_Z1.findIntersections(new Ray(new Point(0, 0, 0), new Vector(1, 1, 1))),
+                ERROR_PLANE_INTERSECTION);
 
-        // TC02 (EP): Ray is neither orthogonal nor parallel to the plane and does not intersect it
+        // EP02: Ray is neither orthogonal nor parallel to the plane and does not intersect it
         assertNull(
-                plane.findIntersections(new Ray(new Point(2, 2, 2), new Vector(1, 1, 1))),
-                "Ray should not intersect the plane");
+                PLANE_Z1.findIntersections(new Ray(new Point(2, 2, 2), new Vector(1, 1, 1))),
+                ERROR_PLANE_INTERSECTION);
 
         // =============== Boundary Values Tests ==================
 
-        // TC11 (BV): Ray is parallel to the plane and included in the plane
+        // BV01: Ray is parallel to the plane and included in the plane
         assertNull(
-                plane.findIntersections(new Ray(new Point(1, 1, 1), new Vector(1, 0, 0))),
-                "Ray included in the plane should not have intersections");
+                PLANE_Z1.findIntersections(new Ray(new Point(1, 1, 1), new Vector(1, 0, 0))),
+                ERROR_PLANE_INTERSECTION);
 
-        // TC12 (BV): Ray is parallel to the plane and not included in the plane
+        // BV02: Ray is parallel to the plane and not included in the plane
         assertNull(
-                plane.findIntersections(new Ray(new Point(1, 1, 2), new Vector(1, 0, 0))),
-                "Ray parallel to the plane and outside it should not intersect");
+                PLANE_Z1.findIntersections(new Ray(new Point(1, 1, 2), new Vector(1, 0, 0))),
+                ERROR_PLANE_INTERSECTION);
 
-        // TC13 (BV): Ray is orthogonal to the plane and starts before the plane
+        // BV03: Ray is orthogonal to the plane and starts before the plane
         assertEquals(
                 List.of(new Point(0, 0, 1)),
-                plane.findIntersections(new Ray(new Point(0, 0, 0), new Vector(0, 0, 1))),
-                "Orthogonal ray before the plane should intersect once");
+                PLANE_Z1.findIntersections(new Ray(new Point(0, 0, 0), new Vector(0, 0, 1))),
+                ERROR_PLANE_INTERSECTION);
 
-        // TC14 (BV): Ray is orthogonal to the plane and starts in the plane
+        // BV04: Ray is orthogonal to the plane and starts in the plane
         assertNull(
-                plane.findIntersections(new Ray(new Point(0, 0, 1), new Vector(0, 0, 1))),
-                "Orthogonal ray starting in the plane should not intersect");
+                PLANE_Z1.findIntersections(new Ray(new Point(0, 0, 1), new Vector(0, 0, 1))),
+                ERROR_PLANE_INTERSECTION);
 
-        // TC15 (BV): Ray is orthogonal to the plane and starts after the plane
+        // BV05: Ray is orthogonal to the plane and starts after the plane
         assertNull(
-                plane.findIntersections(new Ray(new Point(0, 0, 2), new Vector(0, 0, 1))),
-                "Orthogonal ray starting after the plane should not intersect");
+                PLANE_Z1.findIntersections(new Ray(new Point(0, 0, 2), new Vector(0, 0, 1))),
+                ERROR_PLANE_INTERSECTION);
 
-        // TC16 (BV): Ray is neither orthogonal nor parallel and begins on the plane
+        // BV06: Ray is neither orthogonal nor parallel and begins on the plane
         assertNull(
-                plane.findIntersections(new Ray(new Point(1, 1, 1), new Vector(1, 1, 1))),
-                "Ray starting on the plane should not intersect");
+                PLANE_Z1.findIntersections(new Ray(new Point(1, 1, 1), new Vector(1, 1, 1))),
+                ERROR_PLANE_INTERSECTION);
 
-        // TC17 (BV): Ray is neither orthogonal nor parallel and begins at the reference point of the plane
+        // BV07: Ray is neither orthogonal nor parallel and begins at the reference point of the plane
         assertNull(
-                plane.findIntersections(new Ray(new Point(0, 0, 1), new Vector(1, 1, 2))),
-                "Ray starting at the plane reference point should not intersect");
+                PLANE_Z1.findIntersections(new Ray(new Point(0, 0, 1), new Vector(1, 1, 2))),
+                ERROR_PLANE_INTERSECTION);
     }
 }
