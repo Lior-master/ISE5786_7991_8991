@@ -2,6 +2,8 @@ package primitives;
 
 import java.util.Objects;
 
+import static primitives.Util.isZero;
+
 /**
  * Represents an immutable geometric ray in 3D space.
  * <p>
@@ -57,13 +59,13 @@ public class Ray {
     }
 
     /**
-     * Because DRY this function calculate intersection with the ray
+     * Returns a point on the ray line at distance t from the origin.
      *
-     * @param t the distance from the ray's origin to the intersection point
-     * @return the intersection with the ray
+     * @param t the signed distance from the ray origin
+     * @return the computed point
      */
     public Point getPoint(Double t) {
-        return null;
+        return isZero(t) ? _origin : _origin.add(_direction.scale(t));
     }
 
     @Override
@@ -74,12 +76,10 @@ public class Ray {
         return _origin.equals(other._origin) && _direction.equals(other._direction);
     }
 
-
     @Override
     public String toString() {
         return "Ray:" + _origin + _direction;
     }
-
 
     @Override
     public int hashCode() {
