@@ -1,11 +1,15 @@
 package geometries.impl;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import primitives.Point;
+import primitives.Ray;
 import primitives.Vector;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
@@ -15,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * <li>{@link Plane#getNormal(Point)}</li>
  * <li>{@link Plane#Plane(Point, Vector)}</li>
  * <li>{@link Plane#Plane(Point, Point, Point)}</li>
+ * <li>{@link Plane#findIntersections(Ray)}</li>
  * </ul>
  * Tests follow the methodology of
  * Equivalence Partitions (EP) and Boundary Values (BVA).
@@ -87,6 +92,9 @@ class PlaneTest {
                 "Plane(Point, Vector) returned a non-unit normal");
     }
 
+    /**
+     * Test method for {@link Plane#Plane(Point, Point, Point)}.
+     */
     @Test
     void testConstructorThreePoints() {
 
@@ -135,5 +143,65 @@ class PlaneTest {
                         new Point(1, 1, 1),
                         new Point(2, 2, 2)),
                 "Constructed a plane with three collinear points");
+    }
+
+    /**
+     * Test method for {@link Plane#findIntersections(Ray)}.
+     */
+    @Test
+    void testFindIntersections() {
+
+        Plane plane = new Plane(new Point(0, 0, 1), new Vector(0, 0, 1));
+
+        // ============ Equivalence Partitions Tests ==============
+
+        // TC01 (EP): Ray is neither orthogonal nor parallel to the plane and intersects it
+        assertEquals(
+                List.of(new Point(1, 1, 1)),
+                plane.findIntersections(new Ray(new Point(0, 0, 0), new Vector(1, 1, 1))),
+                "Ray should intersect the plane");
+
+        // TC02 (EP): Ray is neither orthogonal nor parallel to the plane and does not intersect it
+        assertNull(
+                plane.findIntersections(new Ray(new Point(2, 2, 2), new Vector(1, 1, 1))),
+                "Ray should not intersect the plane");
+
+        // =============== Boundary Values Tests ==================
+
+        // TC11 (BV): Ray is parallel to the plane and included in the plane
+        assertNull(
+                plane.findIntersections(new Ray(new Point(1, 1, 1), new Vector(1, 0, 0))),
+                "Ray included in the plane should not have intersections");
+
+        // TC12 (BV): Ray is parallel to the plane and not included in the plane
+        assertNull(
+                plane.findIntersections(new Ray(new Point(1, 1, 2), new Vector(1, 0, 0))),
+                "Ray parallel to the plane and outside it should not intersect");
+
+        // TC13 (BV): Ray is orthogonal to the plane and starts before the plane
+        assertEquals(
+                List.of(new Point(0, 0, 1)),
+                plane.findIntersections(new Ray(new Point(0, 0, 0), new Vector(0, 0, 1))),
+                "Orthogonal ray before the plane should intersect once");
+
+        // TC14 (BV): Ray is orthogonal to the plane and starts in the plane
+        assertNull(
+                plane.findIntersections(new Ray(new Point(0, 0, 1), new Vector(0, 0, 1))),
+                "Orthogonal ray starting in the plane should not intersect");
+
+        // TC15 (BV): Ray is orthogonal to the plane and starts after the plane
+        assertNull(
+                plane.findIntersections(new Ray(new Point(0, 0, 2), new Vector(0, 0, 1))),
+                "Orthogonal ray starting after the plane should not intersect");
+
+        // TC16 (BV): Ray is neither orthogonal nor parallel and begins on the plane
+        assertNull(
+                plane.findIntersections(new Ray(new Point(1, 1, 1), new Vector(1, 1, 1))),
+                "Ray starting on the plane should not intersect");
+
+        // TC17 (BV): Ray is neither orthogonal nor parallel and begins at the reference point of the plane
+        assertNull(
+                plane.findIntersections(new Ray(new Point(0, 0, 1), new Vector(1, 1, 2))),
+                "Ray starting at the plane reference point should not intersect");
     }
 }
