@@ -39,11 +39,29 @@ public class Geometries extends Intersectable {
      * @param geometries one or more intersectable geometries to add
      */
     public void add(Intersectable... geometries) {
-        addAll(this.geometries, geometries);
+        if (geometries != null) {
+            addAll(this.geometries, geometries);
+        }
+
     }
 
     @Override
     public List<Point> findIntersections(Ray ray) {
-        return null;
+        List<Point> intersections = null;
+
+        for (Intersectable geometry : geometries) {
+            List<Point> geoIntersections = geometry.findIntersections(ray);
+
+            if (geoIntersections != null && !geoIntersections.isEmpty()) {
+                if (intersections == null) {
+                    // Create only when we actually have first intersection points
+                    intersections = new ArrayList<>(geoIntersections);
+                } else {
+                    intersections.addAll(geoIntersections);
+                }
+            }
+        }
+
+        return intersections; // null if nothing found
     }
 }
