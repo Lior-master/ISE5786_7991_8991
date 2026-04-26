@@ -95,7 +95,7 @@ public class Camera implements Cloneable {
             try {
                 return (Camera) _camera.clone();
             } catch (CloneNotSupportedException e) {
-                throw new RuntimeException("Clone failed");
+                return null;
             }
         }
 
