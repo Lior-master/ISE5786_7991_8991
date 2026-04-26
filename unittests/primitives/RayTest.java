@@ -140,4 +140,26 @@ class RayTest {
         assertEquals(zero, rayAtZero.origin(),
                 "origin() did not return the expected origin when origin is (0,0,0)");
     }
+    
+    @Test
+    void getPointTest()
+    {
+        // ============ Equivalence Partitions Tests ==============
+
+        Ray ray = new Ray(ORIGIN, DIR_AXIS_X);
+
+        // EP01: t < 0
+        assertEquals(new Point(-1, 2, 3), ray.getPoint(-2),
+                "getPoint() returned wrong point for t < 0");
+
+        // EP02: t > 0
+        assertEquals(new Point(4, 2, 3), ray.getPoint(3),
+                "getPoint() returned wrong point for t > 0");
+
+        // =============== Boundary Values Tests ==================
+
+        // BV01: t = 0
+        assertEquals(ORIGIN, ray.getPoint(0),
+                "getPoint() should return origin for t = 0");
+    }
 }
