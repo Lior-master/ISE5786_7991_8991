@@ -20,7 +20,6 @@ public class Camera implements Cloneable {
     private int _nX = 1;
     private int _nY = 1;
 
-    // champs calculés
     private Point _vpCenter;
     private double _pixelWidth;
     private double _pixelHeight;
