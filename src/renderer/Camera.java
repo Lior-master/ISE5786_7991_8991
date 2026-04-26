@@ -84,7 +84,7 @@ public class Camera implements Cloneable {
         public Camera build() {
 
             checkResolution();
-            checkOrientation();
+            checkLocationAndDirection();
             checkViewPlane();
 
             calcVectors();
@@ -105,7 +105,7 @@ public class Camera implements Cloneable {
                 throw new IllegalArgumentException("Invalid resolution");
         }
 
-        private void checkOrientation() {
+        private void checkLocationAndDirection() {
             if (_camera._p0 == null || _camera._vTo == null || _camera._vUp == null)
                 throw new IllegalArgumentException("Missing camera orientation");
 
