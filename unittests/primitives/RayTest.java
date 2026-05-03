@@ -1,9 +1,12 @@
 package primitives;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
@@ -140,10 +143,12 @@ class RayTest {
         assertEquals(zero, rayAtZero.origin(),
                 "origin() did not return the expected origin when origin is (0,0,0)");
     }
-    
+
+    /**
+     * Test {@link Ray#getPoint(double)} with various parameter values.
+     */
     @Test
-    void getPointTest()
-    {
+    void getPointTest() {
         // ============ Equivalence Partitions Tests ==============
 
         Ray ray = new Ray(ORIGIN, DIR_AXIS_X);
@@ -161,5 +166,45 @@ class RayTest {
         // BV01: t = 0
         assertEquals(ORIGIN, ray.getPoint(0),
                 "getPoint() should return origin for t = 0");
+    }
+
+    /**
+     * Test {@link Ray#findClosestPoint(java.util.List)} with various point lists.
+     */
+    @Test
+    void findClosestPointTest() {
+        // ============ Equivalence Partitions Tests ==============
+
+        Ray ray = new Ray(ORIGIN, DIR_AXIS_X);
+
+        // EP01: Closest point is in the middle of the list
+        assertEquals(new Point(2, 0, 0),
+                ray.findClosestPoint(List.of(
+                        new Point(5, 0, 0),
+                        new Point(2, 0, 0), // closest
+                        new Point(4, 0, 0))),
+                "findClosestPoint() did not return the closest point in the middle of the list");
+
+        // =============== Boundary Values Tests ==================
+
+        // BV01: null list
+        assertNull(ray.findClosestPoint(null),
+                "findClosestPoint() with null list should return null");
+
+        // BV02: Closest point is the first point in the list
+        assertEquals(new Point(2, 0, 0),
+                ray.findClosestPoint(List.of(
+                        new Point(2, 0, 0), // closest
+                        new Point(5, 0, 0),
+                        new Point(4, 0, 0))),
+                "findClosestPoint() did not return the closest point at the beginning of the list");
+
+        // BV03: Closest point is the last point in the list
+        assertEquals(new Point(2, 0, 0),
+                ray.findClosestPoint(List.of(
+                        new Point(5, 0, 0),
+                        new Point(4, 0, 0),
+                        new Point(2, 0, 0))), // closest
+                "findClosestPoint() did not return the closest point at the end of the list");
     }
 }
