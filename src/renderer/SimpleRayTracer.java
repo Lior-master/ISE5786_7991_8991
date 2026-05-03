@@ -38,17 +38,7 @@ class SimpleRayTracer extends RayTracerBase {
             return _scene.background;
         }
 
-        Point closestPoint = intersections.get(0);
-        double minDistance = closestPoint.distanceSquared(ray.origin());
-
-        for (int i = 1; i < intersections.size(); i++) {
-            Point point = intersections.get(i);
-            double distance = point.distanceSquared(ray.origin());
-            if (distance < minDistance) {
-                minDistance = distance;
-                closestPoint = point;
-            }
-        }
+        Point closestPoint = ray.findClosestPoint(intersections);
 
         return calcColor(closestPoint);
     }
