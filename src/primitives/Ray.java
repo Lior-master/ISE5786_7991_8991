@@ -3,6 +3,7 @@ package primitives;
 import java.util.List;
 import java.util.Objects;
 
+import static geometries.api.Intersectable.Intersection;
 import static primitives.Util.isZero;
 
 /**
@@ -69,6 +70,26 @@ public class Ray {
         return isZero(t) ? _origin : _origin.add(_direction.scale(t));
     }
 
+    public Intersection findClosestIntersection(List<Intersection> intersections) {
+        if (intersections == null) {
+            return null;
+        }
+
+        Intersection closestIntersection = null;
+        double closestDistanceSquared = Double.POSITIVE_INFINITY;
+
+        for (Intersection intersection : intersections) {
+            double distanceSquared = _origin.distanceSquared(intersection.point);
+
+            if (distanceSquared < closestDistanceSquared) {
+                closestDistanceSquared = distanceSquared;
+                closestIntersection = intersection;
+            }
+        }
+
+        return closestIntersection;
+    }
+
     /**
      * Finds the point closest to the ray origin from a given list of points.
      *
@@ -76,23 +97,12 @@ public class Ray {
      * @return the closest point to the ray origin, or null if the list is null
      */
     public Point findClosestPoint(List<Point> points) {
-        if (points == null) {
-            return null;
-        }
-
-        Point closestPoint = null;
-        double closestDistanceSquared = Double.POSITIVE_INFINITY;
-
-        for (Point point : points) {
-            double distanceSquared = _origin.distanceSquared(point);
-
-            if (distanceSquared < closestDistanceSquared) {
-                closestDistanceSquared = distanceSquared;
-                closestPoint = point;
-            }
-        }
-
-        return closestPoint;
+        return points == null ? null
+                : findClosestIntersection(
+                points.stream()
+                        .map(point -> new Intersection(null, point))
+                        .toList()
+        ).point;
     }
 
     @Override

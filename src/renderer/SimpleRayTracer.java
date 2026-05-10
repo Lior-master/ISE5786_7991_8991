@@ -3,9 +3,10 @@ package renderer;
 import java.util.List;
 
 import primitives.Color;
-import primitives.Point;
 import primitives.Ray;
 import scene.Scene;
+
+import static geometries.api.Intersectable.Intersection;
 
 /**
  * A minimal ray tracer implementation.
@@ -27,19 +28,19 @@ class SimpleRayTracer extends RayTracerBase {
      * @param intersection hit point on a geometry
      * @return color at the intersection
      */
-    private Color calcColor(Point intersection) {
-        return _scene.ambientLight.intensity();
+    private Color calcColor(Intersection intersection) {
+        return _scene.ambientLight.intensity().add(intersection.geometry.getEmission());
     }
 
     @Override
     Color traceRay(Ray ray) {
-        List<Point> intersections = _scene.geometries.findIntersections(ray);
+        List<Intersection> intersections = _scene.geometries.calcIntersections(ray);
         if (intersections == null || intersections.isEmpty()) {
             return _scene.background;
         }
 
-        Point closestPoint = ray.findClosestPoint(intersections);
+        var closestIntersection = ray.findClosestIntersection(intersections);
 
-        return calcColor(closestPoint);
+        return calcColor(closestIntersection);
     }
 }

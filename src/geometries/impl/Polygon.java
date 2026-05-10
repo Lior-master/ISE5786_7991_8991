@@ -90,7 +90,7 @@ public class Polygon extends Geometry {
     }
 
     @Override
-    public List<Point> findIntersections(Ray ray) {
+    protected List<Intersection> calcIntersectionsHelper(Ray ray) {
         List<Point> intersections = _plane.findIntersections(ray);
         if (intersections == null) return null;
 
@@ -114,6 +114,6 @@ public class Polygon extends Geometry {
             if (positive != (sign > 0)) return null;
         }
 
-        return intersections;
+        return List.of(new Intersection(this, ray.origin()));
     }
 }
