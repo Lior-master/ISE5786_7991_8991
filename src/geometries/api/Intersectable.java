@@ -2,25 +2,50 @@ package geometries.api;
 
 import java.util.List;
 
+import primitives.Material;
 import primitives.Point;
 import primitives.Ray;
 
 /**
- * Abstract base class for all geometric objects that can be intersected by a ray.
+ * Base class for objects that can be intersected by a {@link Ray}.
  */
 public abstract class Intersectable {
+
+    /**
+     * Immutable intersection data: geometry, hit point, and material.
+     */
     public static final class Intersection {
+
+        /**
+         * Geometry hit by the ray.
+         */
         public final Geometry geometry;
+
+        /**
+         * Intersection point in 3D space.
+         */
         public final Point point;
 
+        /**
+         * Material at the hit geometry.
+         */
+        public final Material material;
+
+        /**
+         * Creates an intersection record.
+         *
+         * @param geometry hit geometry
+         * @param point    hit point
+         */
         public Intersection(Geometry geometry, Point point) {
             this.geometry = geometry;
             this.point = point;
+            material = geometry == null ? new Material() : geometry.getMaterial();
         }
 
         @Override
         public String toString() {
-            return "Intersection [geometry=" + geometry + ", point=" + point + "]";
+            return "Intersection [geometry=" + geometry + ", point=" + point + ", material=" + material + "]";
         }
 
         @Override
@@ -31,6 +56,12 @@ public abstract class Intersectable {
         }
     }
 
+    /**
+     * Finds intersection points of a ray with this object.
+     *
+     * @param ray input ray
+     * @return list of intersection points, or {@code null} if none
+     */
     public final List<Point> findIntersections(Ray ray) {
         var intersections = calcIntersections(ray);
         return intersections == null ? null
@@ -39,8 +70,20 @@ public abstract class Intersectable {
                 .toList();
     }
 
+    /**
+     * Internal intersection calculation implemented by concrete geometries.
+     *
+     * @param ray input ray
+     * @return list of intersection records, or {@code null} if none
+     */
     protected abstract List<Intersection> calcIntersectionsHelper(Ray ray);
 
+    /**
+     * Calculates full intersection records for a ray.
+     *
+     * @param ray input ray
+     * @return list of intersections, or {@code null} if none
+     */
     public final List<Intersection> calcIntersections(Ray ray) {
         return calcIntersectionsHelper(ray);
     }
