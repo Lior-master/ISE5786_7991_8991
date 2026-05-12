@@ -7,6 +7,7 @@ import primitives.Point;
 import primitives.Ray;
 import primitives.Vector;
 
+import static primitives.Util.alignZero;
 import static primitives.Util.isZero;
 
 /**
@@ -92,28 +93,39 @@ public class Polygon extends Geometry {
     @Override
     protected List<Intersection> calcIntersectionsHelper(Ray ray) {
         List<Point> intersections = _plane.findIntersections(ray);
-        if (intersections == null) return null;
 
-        Point p0 = ray.origin();
-        Vector v = ray.direction();
+        if (intersections == null)
+            return null;
 
-        Vector v1 = _vertices.get(_size - 1).subtract(p0);
-        Vector v2 = _vertices.get(0).subtract(p0);
+        Point point = intersections.getFirst();
+        Vector normal = _plane.getNormal(point);
 
-        double sign = v.dotProduct(v1.crossProduct(v2));
-        if (isZero(sign)) return null;
+        boolean positive = false;
 
-        boolean positive = sign > 0;
+        for (int i = 0; i < _size; i++) {
+            Point vertex1 = _vertices.get(i);
+            Point vertex2 = _vertices.get((i + 1) % _size);
 
-        for (int i = 1; i < _size; ++i) {
-            v1 = v2;
-            v2 = _vertices.get(i).subtract(p0);
-            sign = v.dotProduct(v1.crossProduct(v2));
+            try {
+                Vector edge = vertex2.subtract(vertex1);
+                Vector toPoint = point.subtract(vertex1);
 
-            if (isZero(sign)) return null;
-            if (positive != (sign > 0)) return null;
+                double sign = alignZero(edge.crossProduct(toPoint).dotProduct(normal));
+
+                if (isZero(sign))
+                    return null;
+
+                if (i == 0) {
+                    positive = sign > 0;
+                } else if (positive != (sign > 0)) {
+                    return null;
+                }
+
+            } catch (IllegalArgumentException exception) {
+                return null;
+            }
         }
 
-        return List.of(new Intersection(this, ray.origin()));
+        return List.of(new Intersection(this, point));
     }
 }
