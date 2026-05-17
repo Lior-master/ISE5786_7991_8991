@@ -43,27 +43,23 @@ public class PointLight extends Light implements LightSource {
      *
      * @param intensity the original light intensity
      * @param position  the position of the light source in the scene
-     * @param kC        the constant attenuation factor
-     * @param kL        the linear attenuation factor
-     * @param kQ        the quadratic attenuation factor
      */
-    public PointLight(Color intensity, Point position, double kC, double kL, double kQ) {
+    public PointLight(Color intensity, Point position) {
         super(intensity);
         _position = position;
-        setkC(kC).setkL(kL).setkQ(kQ);
     }
 
-    public PointLight setkC(double kC) {
+    public PointLight setKc(double kC) {
         _kC = kC;
         return this;
     }
 
-    public PointLight setkL(double kL) {
+    public PointLight setKl(double kL) {
         _kL = kL;
         return this;
     }
 
-    public PointLight setkQ(double kQ) {
+    public PointLight setKq(double kQ) {
         _kQ = kQ;
         return this;
     }

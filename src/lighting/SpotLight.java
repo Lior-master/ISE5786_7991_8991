@@ -29,12 +29,9 @@ public class SpotLight extends PointLight {
      * @param intensity the original light intensity
      * @param position  the position of the spotlight
      * @param direction the direction in which the spotlight emits light
-     * @param kC        the constant attenuation factor
-     * @param kL        the linear attenuation factor
-     * @param kQ        the quadratic attenuation factor
      */
-    public SpotLight(Color intensity, Point position, Vector direction, double kC, double kL, double kQ) {
-        super(intensity, position, kC, kL, kQ);
+    public SpotLight(Color intensity, Point position, Vector direction) {
+        super(intensity, position);
         _direction = direction.normalize();
     }
 
