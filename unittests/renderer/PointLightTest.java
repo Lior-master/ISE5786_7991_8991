@@ -67,7 +67,7 @@ class PointLightTests {
      */
     @Test
     void testGetL() {
-        PointLight light = new PointLight(INTENSITY, LIGHT_POSITION, 1, 1, 0);
+        PointLight light = new PointLight(INTENSITY, LIGHT_POSITION).setKl(1);
 
         // ============ Equivalence Partitions Tests ==============
 
@@ -91,7 +91,7 @@ class PointLightTests {
      */
     @Test
     void testGetIntensity() {
-        PointLight light = new PointLight(INTENSITY, LIGHT_POSITION, 1, 1, 0);
+        PointLight light = new PointLight(INTENSITY, LIGHT_POSITION).setKl(1);
 
         // ============ Equivalence Partitions Tests ==============
 

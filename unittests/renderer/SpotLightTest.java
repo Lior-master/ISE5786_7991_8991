@@ -77,7 +77,7 @@ class SpotLightTests {
      */
     @Test
     void testGetL() {
-        SpotLight light = new SpotLight(INTENSITY, LIGHT_POSITION, SPOT_DIRECTION, 1, 1, 0);
+        SpotLight light = new SpotLight(INTENSITY, LIGHT_POSITION, SPOT_DIRECTION).setKl(1);
 
         // ============ Equivalence Partitions Tests ==============
 
@@ -101,7 +101,7 @@ class SpotLightTests {
      */
     @Test
     void testGetIntensity() {
-        SpotLight light = new SpotLight(INTENSITY, LIGHT_POSITION, SPOT_DIRECTION, 1, 1, 0);
+        SpotLight light = new SpotLight(INTENSITY, LIGHT_POSITION, SPOT_DIRECTION).setKl(1);
 
         // ============ Equivalence Partitions Tests ==============
 
