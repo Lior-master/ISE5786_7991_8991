@@ -1,4 +1,8 @@
 geometries.api
 geometries.impl
+lighting
+parser
 primitives
+renderer
+scene
 test

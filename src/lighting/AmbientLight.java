@@ -8,7 +8,7 @@ import primitives.Color;
  * Ambient light provides a global, uniform illumination that affects all
  * geometries in the scene equally. Instances of this class are immutable.
  *
- * @author Halimi Lior & Nakache Ben
+ * @author Halimi Lior and Nakache Ben
  */
 public final class AmbientLight {
     /**

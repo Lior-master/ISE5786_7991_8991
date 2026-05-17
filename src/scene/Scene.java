@@ -14,7 +14,7 @@ import primitives.Color;
  * Note: fields are public for convenience in the original project design (PDS Class);
  * they can be changed directly or via the provided setter methods.
  *
- * @author Halimi Lior & Nakache Ben
+ * @author Halimi Lior and Nakache Ben
  */
 public class Scene {
     /**

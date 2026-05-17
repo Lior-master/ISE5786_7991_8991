@@ -70,6 +70,12 @@ public class Ray {
         return isZero(t) ? _origin : _origin.add(_direction.scale(t));
     }
 
+    /**
+     * Finds the closest intersection to the ray origin.
+     *
+     * @param intersections list of intersections
+     * @return closest intersection, or {@code null} if the list is {@code null}
+     */
     public Intersection findClosestIntersection(List<Intersection> intersections) {
         if (intersections == null) {
             return null;
@@ -105,6 +111,12 @@ public class Ray {
         ).point;
     }
 
+    /**
+     * Compares this ray with another object.
+     *
+     * @param obj object to compare
+     * @return {@code true} if both rays have equal origin and direction
+     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
@@ -113,11 +125,21 @@ public class Ray {
         return _origin.equals(other._origin) && _direction.equals(other._direction);
     }
 
+    /**
+     * Returns a string representation of the ray.
+     *
+     * @return ray as text
+     */
     @Override
     public String toString() {
         return "Ray:" + _origin + _direction;
     }
 
+    /**
+     * Returns a hash code based on origin and direction.
+     *
+     * @return hash code
+     */
     @Override
     public int hashCode() {
         return Objects.hash(_origin, _direction);

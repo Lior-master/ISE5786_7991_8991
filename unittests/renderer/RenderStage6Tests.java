@@ -156,7 +156,7 @@ class RenderStage6Tests {
      */
     @Test
     void testRenderEmissionColor() {
-        Scene scene = new Scene("Emission color").setAmbientLight(new AmbientLight(new Color(WHITE)));
+        Scene scene = new Scene("Emission color").setAmbientLight(new AmbientLight(new Color(51, 51, 51)));
         scene.geometries //
                 .add(_sphere, // no emission
                         _triangleLeftTop.setEmission(new Color(GREEN)),

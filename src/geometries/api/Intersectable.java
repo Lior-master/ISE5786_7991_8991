@@ -12,6 +12,11 @@ import primitives.Ray;
 public abstract class Intersectable {
 
     /**
+     * Default constructor for Javadoc tools.
+     */
+    public Intersectable() {/* to satisfy Javadoc generator */ }
+
+    /**
      * Immutable intersection data: geometry, hit point, and material.
      */
     public static final class Intersection {
@@ -43,11 +48,22 @@ public abstract class Intersectable {
             material = geometry == null ? new Material() : geometry.getMaterial();
         }
 
+        /**
+         * Returns a string representation of this intersection.
+         *
+         * @return intersection as text
+         */
         @Override
         public String toString() {
             return "Intersection [geometry=" + geometry + ", point=" + point + ", material=" + material + "]";
         }
 
+        /**
+         * Compares this intersection with another object.
+         *
+         * @param o object to compare
+         * @return {@code true} if geometry and point are equal
+         */
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;

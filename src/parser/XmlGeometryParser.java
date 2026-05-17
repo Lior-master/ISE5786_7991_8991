@@ -74,6 +74,12 @@ final class XmlGeometryParser {
         return XmlGeometryAttributes.applyCommonAttributes(geometry, element);
     }
 
+    /**
+     * Parses a {@code <sphere>} element.
+     *
+     * @param element sphere XML element
+     * @return parsed sphere
+     */
     private static Sphere parseSphere(Element element) {
         Point center = XmlPrimitivesParser.parsePoint(
                 XmlPrimitivesParser.getRequiredAttribute(element, "center")
@@ -86,6 +92,12 @@ final class XmlGeometryParser {
         return new Sphere(center, radius);
     }
 
+    /**
+     * Parses a {@code <triangle>} element.
+     *
+     * @param element triangle XML element
+     * @return parsed triangle
+     */
     private static Triangle parseTriangle(Element element) {
         Point p0 = XmlPrimitivesParser.parsePoint(
                 XmlPrimitivesParser.getRequiredAttribute(element, "p0")
@@ -100,6 +112,12 @@ final class XmlGeometryParser {
         return new Triangle(p0, p1, p2);
     }
 
+    /**
+     * Parses a {@code <plane>} element.
+     *
+     * @param element plane XML element
+     * @return parsed plane
+     */
     private static Plane parsePlane(Element element) {
         Point point = XmlPrimitivesParser.parsePoint(
                 XmlPrimitivesParser.getRequiredAttribute(element, "point")
@@ -112,6 +130,12 @@ final class XmlGeometryParser {
         return new Plane(point, vector);
     }
 
+    /**
+     * Parses a {@code <tube>} element.
+     *
+     * @param element tube XML element
+     * @return parsed tube
+     */
     private static Tube parseTube(Element element) {
         double radius = XmlPrimitivesParser.parseDouble(
                 XmlPrimitivesParser.getRequiredAttribute(element, "radius")
@@ -128,6 +152,12 @@ final class XmlGeometryParser {
         return new Tube(radius, new Ray(rayOrigin, rayVector));
     }
 
+    /**
+     * Parses a {@code <cylinder>} element.
+     *
+     * @param element cylinder XML element
+     * @return parsed cylinder
+     */
     private static Cylinder parseCylinder(Element element) {
         double radius = XmlPrimitivesParser.parseDouble(
                 XmlPrimitivesParser.getRequiredAttribute(element, "radius")
@@ -148,6 +178,12 @@ final class XmlGeometryParser {
         return new Cylinder(radius, new Ray(rayOrigin, rayVector), height);
     }
 
+    /**
+     * Parses a {@code <polygon>} element from direct child {@code <point>} elements.
+     *
+     * @param element polygon XML element
+     * @return parsed polygon
+     */
     private static Polygon parsePolygon(Element element) {
         NodeList childNodes = element.getChildNodes();
 
@@ -181,6 +217,12 @@ final class XmlGeometryParser {
         return new Polygon(points);
     }
 
+    /**
+     * Counts direct child nodes named {@code point}.
+     *
+     * @param childNodes child nodes of a polygon element
+     * @return number of direct {@code point} children
+     */
     private static int countDirectPointChildren(NodeList childNodes) {
         int count = 0;
 

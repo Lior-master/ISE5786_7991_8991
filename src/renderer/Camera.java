@@ -21,24 +21,38 @@ import static primitives.Util.isZero;
  */
 public class Camera implements Cloneable {
 
+    /** Camera origin point. */
     private Point _p0;
 
+    /** Forward camera axis. */
     private Vector _vTo;
+    /** Up camera axis. */
     private Vector _vUp;
+    /** Right camera axis. */
     private Vector _vRight;
 
+    /** View-plane width. */
     private double _width;
+    /** View-plane height. */
     private double _height;
+    /** Distance from camera to view plane. */
     private double _distance;
 
+    /** Horizontal resolution (columns). */
     private int _nX = 1;
+    /** Vertical resolution (rows). */
     private int _nY = 1;
 
+    /** Image buffer writer. */
     private ImageWriter _imageWriter;
+    /** Active ray tracer implementation. */
     private RayTracerBase _rayTracer;
 
+    /** Cached view-plane center point. */
     private Point _vpCenter;
+    /** Cached pixel width. */
     private double _pixelWidth;
+    /** Cached pixel height. */
     private double _pixelHeight;
 
     /**
@@ -64,6 +78,11 @@ public class Camera implements Cloneable {
      * </p>
      */
     public static class Builder {
+
+        /**
+         * Private constructor. Use {@link Camera#getBuilder()}.
+         */
+        private Builder() {/* to satisfy Javadoc generator */ }
 
         private final Camera _camera = new Camera();
 
@@ -181,7 +200,7 @@ public class Camera implements Cloneable {
          * Validates all required camera data and returns a built instance.
          *
          * @return a configured {@link Camera}
-         * @throws MissingResourceException  if location or direction data is missing
+         * @throws MissingResourceException if location or direction data is missing
          * @throws IllegalArgumentException if size, distance, resolution, or orientation is invalid
          */
         public Camera build() {
@@ -216,7 +235,7 @@ public class Camera implements Cloneable {
         /**
          * Validates location and direction inputs and computes camera basis vectors.
          *
-         * @throws MissingResourceException  if required location/direction input is missing
+         * @throws MissingResourceException if required location/direction input is missing
          * @throws IllegalArgumentException if forward and up vectors are parallel
          */
         private void checkLocationAndDirection() {

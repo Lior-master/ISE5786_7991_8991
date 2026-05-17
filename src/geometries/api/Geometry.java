@@ -14,6 +14,8 @@ import primitives.Vector;
  */
 public abstract class Geometry extends Intersectable {
 
+    private Geometry() {/* to satisfy the Javadoc generator */}
+
     /**
      * Emission color of the geometry.
      */
