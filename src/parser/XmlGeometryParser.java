@@ -102,9 +102,11 @@ final class XmlGeometryParser {
         Point p0 = XmlPrimitivesParser.parsePoint(
                 XmlPrimitivesParser.getRequiredAttribute(element, "p0")
         );
+
         Point p1 = XmlPrimitivesParser.parsePoint(
                 XmlPrimitivesParser.getRequiredAttribute(element, "p1")
         );
+
         Point p2 = XmlPrimitivesParser.parsePoint(
                 XmlPrimitivesParser.getRequiredAttribute(element, "p2")
         );
@@ -128,6 +130,45 @@ final class XmlGeometryParser {
         );
 
         return new Plane(point, vector);
+    }
+
+    /**
+     * Parses a {@code <polygon>} element from direct child {@code <point>} elements.
+     *
+     * @param element polygon XML element
+     * @return parsed polygon
+     */
+    private static Polygon parsePolygon(Element element) {
+        NodeList childNodes = element.getChildNodes();
+
+        int pointCount = countDirectPointChildren(childNodes);
+
+        if (pointCount < 3) {
+            throw new IllegalArgumentException("Polygon must have at least 3 points");
+        }
+
+        Point[] points = new Point[pointCount];
+        int pointIndex = 0;
+
+        for (int i = 0; i < childNodes.getLength(); i++) {
+            Node node = childNodes.item(i);
+
+            if (node.getNodeType() != Node.ELEMENT_NODE) {
+                continue;
+            }
+
+            Element pointElement = (Element) node;
+
+            if (!"point".equals(pointElement.getTagName())) {
+                continue;
+            }
+
+            points[pointIndex++] = XmlPrimitivesParser.parsePoint(
+                    XmlPrimitivesParser.getRequiredAttribute(pointElement, "value")
+            );
+        }
+
+        return new Polygon(points);
     }
 
     /**
@@ -176,45 +217,6 @@ final class XmlGeometryParser {
         );
 
         return new Cylinder(radius, new Ray(rayOrigin, rayVector), height);
-    }
-
-    /**
-     * Parses a {@code <polygon>} element from direct child {@code <point>} elements.
-     *
-     * @param element polygon XML element
-     * @return parsed polygon
-     */
-    private static Polygon parsePolygon(Element element) {
-        NodeList childNodes = element.getChildNodes();
-
-        int pointCount = countDirectPointChildren(childNodes);
-
-        if (pointCount < 3) {
-            throw new IllegalArgumentException("Polygon must have at least 3 points");
-        }
-
-        Point[] points = new Point[pointCount];
-        int pointIndex = 0;
-
-        for (int i = 0; i < childNodes.getLength(); i++) {
-            Node node = childNodes.item(i);
-
-            if (node.getNodeType() != Node.ELEMENT_NODE) {
-                continue;
-            }
-
-            Element pointElement = (Element) node;
-
-            if (!"point".equals(pointElement.getTagName())) {
-                continue;
-            }
-
-            points[pointIndex++] = XmlPrimitivesParser.parsePoint(
-                    XmlPrimitivesParser.getRequiredAttribute(pointElement, "value")
-            );
-        }
-
-        return new Polygon(points);
     }
 
     /**

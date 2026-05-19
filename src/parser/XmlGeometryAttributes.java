@@ -21,8 +21,11 @@ final class XmlGeometryAttributes {
      * Supported attributes:
      * </p>
      * <ul>
-     * <li>{@code emission="r g b"}</li>
-     * <li>{@code kA="value"} or {@code kA="r g b"}</li>
+     *     <li>{@code emission="r g b"}</li>
+     *     <li>{@code kA="value"} or {@code kA="r g b"}</li>
+     *     <li>{@code kD="value"} or {@code kD="r g b"}</li>
+     *     <li>{@code kS="value"} or {@code kS="r g b"}</li>
+     *     <li>{@code shininess="value"}</li>
      * </ul>
      *
      * @param geometry geometry to update
@@ -36,12 +39,39 @@ final class XmlGeometryAttributes {
             );
         }
 
+        Material material = new Material();
+        boolean hasMaterial = false;
+
         if (XmlPrimitivesParser.hasAttribute(element, "kA")) {
-            geometry.setMaterial(
-                    new Material().setkA(
-                            XmlPrimitivesParser.parseDouble3OrSingle(element.getAttribute("kA"))
-                    )
+            material.setkA(
+                    XmlPrimitivesParser.parseDouble3OrSingle(element.getAttribute("kA"))
             );
+            hasMaterial = true;
+        }
+
+        if (XmlPrimitivesParser.hasAttribute(element, "kD")) {
+            material.setKD(
+                    XmlPrimitivesParser.parseDouble3OrSingle(element.getAttribute("kD"))
+            );
+            hasMaterial = true;
+        }
+
+        if (XmlPrimitivesParser.hasAttribute(element, "kS")) {
+            material.setKS(
+                    XmlPrimitivesParser.parseDouble3OrSingle(element.getAttribute("kS"))
+            );
+            hasMaterial = true;
+        }
+
+        if (XmlPrimitivesParser.hasAttribute(element, "shininess")) {
+            material.setShininess(
+                    (int) XmlPrimitivesParser.parseDouble(element.getAttribute("shininess"))
+            );
+            hasMaterial = true;
+        }
+
+        if (hasMaterial) {
+            geometry.setMaterial(material);
         }
 
         return geometry;

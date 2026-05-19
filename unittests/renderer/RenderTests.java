@@ -5,7 +5,6 @@ import geometries.impl.Triangle;
 import lighting.AmbientLight;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import parser.XmlSceneLoader;
 import primitives.Color;
 import primitives.Point;
 import scene.Scene;
@@ -103,24 +102,6 @@ class RenderTests {
     }
 
     /**
-     * Renders a scene loaded from an XML file.
-     * <p>
-     * Note: parser logic should not be implemented inside tests.
-     *
-     * @param builder the camera builder to use
-     * @param xmlName the XML scene file name
-     * @return the camera after rendering
-     */
-    Camera renderSceneXML(Camera.Builder builder, String xmlName) {
-        Scene scene = XmlSceneLoader.loadScene("xml/" + xmlName);
-
-        return builder //
-                .setRayTracer(scene, RayTracerType.SIMPLE) //
-                .build() //
-                .renderImage(); //
-    }
-
-    /**
      * Renders a scene loaded from a JSON file.
      * <p>
      * Note: parser logic should not be implemented inside tests.
@@ -140,16 +121,6 @@ class RenderTests {
                 .setRayTracer(scene, RayTracerType.SIMPLE) //
                 .build() //
                 .renderImage(); //
-    }
-
-    /**
-     * Test for XML based scene - for bonus
-     */
-    @Test
-    void testBasicRenderXml() {
-        renderSceneXML(baseCameraBuilder(), "basicRenderTestTwoColors.xml") //
-                .printGrid(100, new Color(YELLOW)) //
-                .writeToImage("render test xml");
     }
 
     /**

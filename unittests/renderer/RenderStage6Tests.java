@@ -4,7 +4,6 @@ import geometries.impl.Sphere;
 import geometries.impl.Triangle;
 import lighting.AmbientLight;
 import org.junit.jupiter.api.Test;
-import parser.XmlSceneLoader;
 import primitives.Color;
 import primitives.Double3;
 import primitives.Material;
@@ -180,14 +179,5 @@ class RenderStage6Tests {
                         _triangleRightBottom.setMaterial(new Material().setkA(new Double3(0, 0, 0.8)))
                 );
         createImage(scene, "ambient render test");
-    }
-
-    /**
-     * Test all needed features together by loading the scene from an XML file and rendering it into a png image with a grid.
-     */
-    @Test
-    void testXmlFileStage6() {
-        Scene scene = XmlSceneLoader.loadScene("xml/xmlTestStage6.xml");
-        createImage(scene, "xml render test stage 6");
     }
 }

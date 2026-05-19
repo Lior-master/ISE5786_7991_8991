@@ -9,6 +9,7 @@ import lighting.PointLight;
 import lighting.SpotLight;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import parser.XmlImageLoader;
 import primitives.Color;
 import primitives.Double3;
 import primitives.Material;
@@ -343,7 +344,7 @@ class LightsTests {
      */
     @Test
     @SuppressWarnings("java:S109")
-    @Disabled("bonus test 1")
+    @Disabled("bonus stage 7 test 1")
     void testSphereSpotSharp() {
         _scene1.geometries.add(SPHERE);
 //        _scene1.lights
@@ -361,7 +362,7 @@ class LightsTests {
      */
     @Test
     @SuppressWarnings("java:S109")
-    @Disabled("bonus test 2")
+    @Disabled("bonus stage 7 test 2")
     void testTrianglesSpotSharp() {
         _scene2.geometries.add(TRIANGLE1, TRIANGLE2);
 //        _scene2.lights.add(new SpotLight(TRIANGLES_LIGHT_COLOR, TRIANGLES_LIGHT_POSITION, TRIANGLES_LIGHT_DIRECTION) //
@@ -371,6 +372,11 @@ class LightsTests {
                 .build() //
                 .renderImage() //
                 .writeToImage("lightTrianglesSpotSharp");
+    }
+
+    @Test
+    void testXmlFullArchitecture() {
+        XmlImageLoader.loadImage("xml/fullArchitectureTest.xml");
     }
 
 }
