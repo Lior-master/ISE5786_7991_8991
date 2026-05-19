@@ -49,16 +49,34 @@ public class PointLight extends Light implements LightSource {
         _position = position;
     }
 
+    /**
+     * setter for kC
+     *
+     * @param kC value
+     * @return this
+     */
     public PointLight setKc(double kC) {
         _kC = kC;
         return this;
     }
 
+    /**
+     * setter for KL
+     *
+     * @param kL value
+     * @return this
+     */
     public PointLight setKl(double kL) {
         _kL = kL;
         return this;
     }
 
+    /**
+     * setter for kQ
+     *
+     * @param kQ value
+     * @return this
+     */
     public PointLight setKq(double kQ) {
         _kQ = kQ;
         return this;

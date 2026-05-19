@@ -4,6 +4,9 @@ import primitives.Color;
 import primitives.Point;
 import primitives.Vector;
 
+/**
+ * Represents a light source with constant intensity coming from a single direction.
+ */
 public class DirectionalLight extends Light implements LightSource {
 
     /**

@@ -84,10 +84,14 @@ public class Camera implements Cloneable {
          */
         private Builder() {/* to satisfy Javadoc generator */ }
 
+        /** Camera instance being configured by this builder. */
         private final Camera _camera = new Camera();
 
+        /** Forward direction vector, when direction is set explicitly. */
         private Vector _to;
+        /** Target point, when direction is set by looking at a point. */
         private Point _target;
+        /** Up direction vector used to define the camera orientation. */
         private Vector _up = Vector.AXIS_Y;
 
         /**

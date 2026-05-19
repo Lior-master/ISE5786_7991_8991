@@ -19,6 +19,11 @@ public final class AmbientLight extends Light {
     public static final AmbientLight NONE = new AmbientLight(Color.BLACK);
 
 
+    /**
+     * Constructs an ambient light with the given intensity.
+     *
+     * @param intensity ambient light color intensity
+     */
     public AmbientLight(Color intensity) {
         super(intensity);
     }

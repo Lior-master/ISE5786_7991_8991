@@ -374,6 +374,9 @@ class LightsTests {
                 .writeToImage("lightTrianglesSpotSharp");
     }
 
+    /**
+     * test the XML parser
+     */
     @Test
     void testXmlFullArchitecture() {
         XmlImageLoader.loadImage("xml/fullArchitectureTest.xml");

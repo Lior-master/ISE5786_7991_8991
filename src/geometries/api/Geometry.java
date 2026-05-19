@@ -14,6 +14,9 @@ import primitives.Vector;
  */
 public abstract class Geometry extends Intersectable {
 
+    /**
+     * Creates a new geometry instance.
+     */
     public Geometry() {/* to satisfy the Javadoc generator */}
 
     /**
