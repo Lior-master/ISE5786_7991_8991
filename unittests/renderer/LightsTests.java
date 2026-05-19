@@ -269,6 +269,76 @@ class LightsTests {
     }
 
     /**
+     * produce a picture of two triangles with all lights types
+     */
+    @Test
+    void testTrianglesAllLights() {
+        _scene2.geometries.add(TRIANGLE1, TRIANGLE2);
+
+        _scene2.lights.add(
+                new DirectionalLight(
+                        new Color(300, 150, 150),
+                        new Vector(-1, -1, -1)
+                )
+        );
+
+        _scene2.lights.add(
+                new PointLight(
+                        new Color(300, 200, 100),
+                        new Point(30, 10, -100)
+                ).setKl(0.001).setKq(0.0002)
+        );
+
+        _scene2.lights.add(
+                new SpotLight(
+                        new Color(200, 300, 300),
+                        new Point(-50, -50, 50),
+                        new Vector(1, 1, -2)
+                ).setKl(0.001).setKq(0.0001)
+        );
+
+        _camera2.setResolution(RESOLUTION, RESOLUTION)
+                .build()
+                .renderImage()
+                .writeToImage("lightTrianglesAllLights");
+    }
+
+    /**
+     * produce a picture of the sphere with all lights type
+     */
+    @Test
+    void testSphereAllLights() {
+        _scene1.geometries.add(SPHERE);
+
+        _scene1.lights.add(
+                new DirectionalLight(
+                        new Color(200, 100, 100),
+                        new Vector(1, 1, -1)
+                )
+        );
+
+        _scene1.lights.add(
+                new PointLight(
+                        new Color(300, 200, 100),
+                        new Point(-50, -50, 25)
+                ).setKl(0.001).setKq(0.0002)
+        );
+
+        _scene1.lights.add(
+                new SpotLight(
+                        new Color(200, 300, 300),
+                        new Point(50, 50, 50),
+                        new Vector(-1, -1, -2)
+                ).setKl(0.001).setKq(0.0001)
+        );
+
+        _camera1.setResolution(RESOLUTION, RESOLUTION)
+                .build()
+                .renderImage()
+                .writeToImage("lightSphereAllLights");
+    }
+
+    /**
      * Produce a picture of a sphere lighted by a narrow spotlight
      */
     @Test
