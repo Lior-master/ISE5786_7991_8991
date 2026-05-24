@@ -379,7 +379,7 @@ class LightsTests {
      */
     @Test
     void testXmlFullArchitecture() {
-        XmlImageLoader.loadImage("xml/fullArchitectureTest.xml");
+        XmlImageLoader.loadImage("xml/XMLfullArchitectureTest.xml");
     }
 
 }
