@@ -25,6 +25,16 @@ public class Material {
     public Double3 kS = Double3.ZERO;
 
     /**
+     * Transparency coefficient
+     */
+    public Double3 kT = Double3.ZERO;
+
+    /**
+     * Reflection coefficient.
+     */
+    public Double3 kR = Double3.ZERO;
+
+    /**
      * Shininess exponent used in the specular term.
      */
     public int nShininess = 0;
@@ -95,9 +105,53 @@ public class Material {
         return this;
     }
 
+    /**
+     * Sets a uniform transparency coefficient.
+     *
+     * @param kT transparency coefficient for all channels
+     * @return this material
+     */
+    public Material setKT(Double3 kT) {
+        this.kT = kT;
+        return this;
+    }
 
     /**
-     * set the shininess exponent
+     * Sets a uniform transparency coefficient.
+     *
+     * @param kT transparency coefficient for all channels
+     * @return this material
+     */
+    public Material setKT(double kT) {
+        this.kT = new Double3(kT);
+        return this;
+    }
+
+    /**
+     * Sets reflection coefficient per channel.
+     *
+     * @param kR reflection coefficient values
+     * @return this material
+     */
+    public Material setKR(Double3 kR) {
+        this.kR = kR;
+        return this;
+    }
+
+    /**
+     * Sets a uniform reflection coefficient.
+     *
+     * @param kR reflection coefficient for all channels
+     * @return this material
+     */
+    public Material setKR(double kR) {
+        this.kR = new Double3(kR);
+        return this;
+    }
+
+
+    /**
+     * Sets the shininess exponent.
      *
      * @param nShininess exponent value
      * @return this material
