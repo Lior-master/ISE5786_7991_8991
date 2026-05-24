@@ -18,6 +18,11 @@ import static primitives.Util.alignZero;
 class SimpleRayTracer extends RayTracerBase {
 
     /**
+     * A small delta value to offset the ray origin from the surface to avoid self-intersection issues (self-shadowing).
+     */
+    private static final double DELTA = 0.1;
+
+    /**
      * Creates a simple ray tracer for the given scene.
      *
      * @param scene scene to trace
@@ -61,7 +66,7 @@ class SimpleRayTracer extends RayTracerBase {
     private Color calcColorLocalEffect(Intersection intersection) {
         Color color = intersection.geometry.getEmission();
         for (LightSource lightSource : _scene.lights) {
-            if (preprocessLightSource(intersection, lightSource)) {
+            if (preprocessLightSource(intersection, lightSource) && unshaded(intersection)) {
                 color = color.add(
                         lightSource.getIntensity(intersection.point)
                                 .scale(calcDiffuse(intersection).add(calcSpecular(intersection)))
@@ -99,5 +104,12 @@ class SimpleRayTracer extends RayTracerBase {
         return minusVR <= 0
                 ? Double3.ZERO
                 : intersection.material.kS.scale(Math.pow(minusVR, intersection.material.nShininess));
+    }
+
+    private boolean unshaded(Intersection intersection) {
+        Vector pointToLight = intersection.l.scale(-1);
+        Vector delta = intersection.normal.scale(intersection.lNormal < 0 ? DELTA : -DELTA);
+        Ray shadowRay = new Ray(intersection.point.add(delta), pointToLight);
+        return _scene.geometries.findIntersections(shadowRay) == null;
     }
 }
