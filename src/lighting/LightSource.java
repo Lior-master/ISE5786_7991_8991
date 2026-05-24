@@ -27,4 +27,12 @@ public interface LightSource {
      * @return light intensity at the given point
      */
     Color getIntensity(Point p);
+
+    /**
+     * Calculates the distances with the given point.
+     *
+     * @param point the point being illuminated
+     * @return the distance from the light source to the given point
+     */
+    double getDistance(Point point);
 }

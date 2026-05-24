@@ -106,10 +106,26 @@ class SimpleRayTracer extends RayTracerBase {
                 : intersection.material.kS.scale(Math.pow(minusVR, intersection.material.nShininess));
     }
 
+    /**
+     * Determines if the intersection point is unshaded with respect to the light source.
+     * This is done by casting a shadow ray from the intersection point towards the light source and checking for any occlusions.
+     *
+     * @param intersection the intersection point on the geometry
+     * @return true if the point is unshaded (no occlusions), false if it is in shadow (occluded by another geometry)
+     */
     private boolean unshaded(Intersection intersection) {
         Vector pointToLight = intersection.l.scale(-1);
         Vector delta = intersection.normal.scale(intersection.lNormal < 0 ? DELTA : -DELTA);
         Ray shadowRay = new Ray(intersection.point.add(delta), pointToLight);
-        return _scene.geometries.findIntersections(shadowRay) == null;
+        var shadowIntersections = _scene.geometries.findIntersections(shadowRay);
+        if (shadowIntersections == null) return true;
+
+        double lightDistance = intersection.light.getDistance(intersection.point);
+        for (var shadowIntersection : shadowIntersections) {
+            if (alignZero(shadowIntersection.distance(intersection.point) - lightDistance) <= 0) {
+                return false;
+            }
+        }
+        return true;
     }
 }
