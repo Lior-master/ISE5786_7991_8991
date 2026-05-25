@@ -212,7 +212,7 @@ class SimpleRayTracer extends RayTracerBase {
 
         Ray shadowRay = new Ray(intersection.point.add(delta), pointToLight);
 
-        var shadowIntersections = _scene.geometries.findIntersections(shadowRay);
+        var shadowIntersections = _scene.geometries.calcIntersections(shadowRay);
 
         if (shadowIntersections == null) {
             return true;
@@ -221,12 +221,15 @@ class SimpleRayTracer extends RayTracerBase {
         double lightDistance = intersection.light.getDistance(intersection.point);
 
         for (var shadowIntersection : shadowIntersections) {
-            if (alignZero(shadowIntersection.distance(intersection.point) - lightDistance) <= 0) {
+            if (alignZero(shadowIntersection.point.distance(intersection.point) - lightDistance) <= 0
+                    && shadowIntersection.material.kT.isLowerThan(MIN_CALC_COLOR_K)) {
                 return false;
             }
         }
 
         return true;
+
+
     }
 
     /**
