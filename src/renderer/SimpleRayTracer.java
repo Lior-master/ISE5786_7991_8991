@@ -21,16 +21,6 @@ import static primitives.Util.alignZero;
 class SimpleRayTracer extends RayTracerBase {
 
     /**
-     * Small offset used to move the beginning of secondary rays away from the
-     * surface.
-     * <p>
-     * This prevents numerical precision problems such as self-shadowing or
-     * immediately intersecting the same geometry again.
-     * </p>
-     */
-    private static final double DELTA = 0.1;
-
-    /**
      * Maximum recursion depth for recursive color calculations.
      * <p>
      * This prevents infinite recursion when rays repeatedly reflect or pass
@@ -206,11 +196,7 @@ class SimpleRayTracer extends RayTracerBase {
     private boolean unshaded(Intersection intersection) {
         Vector pointToLight = intersection.l.scale(-1);
 
-        Vector delta = intersection.normal.scale(
-                intersection.lNormal < 0 ? DELTA : -DELTA
-        );
-
-        Ray shadowRay = new Ray(intersection.point.add(delta), pointToLight);
+        Ray shadowRay = new Ray(intersection.point, pointToLight, intersection.normal);
 
         var shadowIntersections = _scene.geometries.calcIntersections(shadowRay);
 
@@ -244,11 +230,7 @@ class SimpleRayTracer extends RayTracerBase {
      * @return the constructed transparency ray
      */
     private Ray constructTransparencyRay(Intersection intersection) {
-        Vector delta = intersection.normal.scale(
-                intersection.vNormal > 0 ? DELTA : -DELTA
-        );
-
-        return new Ray(intersection.point.add(delta), intersection.v);
+        return new Ray(intersection.point, intersection.v, intersection.normal);
     }
 
     /**
@@ -266,11 +248,7 @@ class SimpleRayTracer extends RayTracerBase {
                 intersection.normal.scale(2 * intersection.vNormal)
         );
 
-        Vector delta = intersection.normal.scale(
-                r.dotProduct(intersection.normal) > 0 ? DELTA : -DELTA
-        );
-
-        return new Ray(intersection.point.add(delta), r);
+        return new Ray(intersection.point, r, intersection.normal);
     }
 
     /**

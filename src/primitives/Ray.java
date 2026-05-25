@@ -29,6 +29,16 @@ public class Ray {
     private final Vector _direction;
 
     /**
+     * Small offset used to move the beginning of secondary rays away from the
+     * surface.
+     * <p>
+     * This prevents numerical precision problems such as self-shadowing or
+     * immediately intersecting the same geometry again.
+     * </p>
+     */
+    private static final double DELTA = 0.1;
+
+    /**
      * Constructs a ray from an origin point and a direction vector.
      * <p>
      * The given direction is normalized and stored as a unit vector.
@@ -40,6 +50,12 @@ public class Ray {
     public Ray(Point _origin, Vector _direction) {
         this._origin = _origin;
         this._direction = _direction.normalize();
+    }
+
+    public Ray(Point origin, Vector direction, Vector normal) {
+        Vector delta = normal.scale(isZero(normal.dotProduct(direction)) ? DELTA : DELTA * Math.signum(normal.dotProduct(direction)));
+        this._origin = origin.add(delta);
+        this._direction = direction.normalize();
     }
 
     /**
