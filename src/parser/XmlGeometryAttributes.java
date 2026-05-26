@@ -26,6 +26,8 @@ final class XmlGeometryAttributes {
      *     <li>{@code kD="value"} or {@code kD="r g b"}</li>
      *     <li>{@code kS="value"} or {@code kS="r g b"}</li>
      *     <li>{@code shininess="value"}</li>
+     *     <li>{@code kT="value"} or {@code kT="r g b"}</li>
+     *     <li>{@code kR="value"} or {@code kR="r g b"}</li>
      * </ul>
      *
      * @param geometry geometry to update
@@ -63,9 +65,23 @@ final class XmlGeometryAttributes {
             hasMaterial = true;
         }
 
-        if (XmlPrimitivesParser.hasAttribute(element, "shininess")) {
+        if (XmlPrimitivesParser.hasAttribute(element, "kT")) {
+            material.setKT(
+                    XmlPrimitivesParser.parseDouble3OrSingle(element.getAttribute("kT"))
+            );
+            hasMaterial = true;
+        }
+
+        if (XmlPrimitivesParser.hasAttribute(element, "kR")) {
+            material.setKR(
+                    XmlPrimitivesParser.parseDouble3OrSingle(element.getAttribute("kR"))
+            );
+            hasMaterial = true;
+        }
+
+        if (XmlPrimitivesParser.hasAttribute(element, "nShininess")) {
             material.setShininess(
-                    (int) XmlPrimitivesParser.parseDouble(element.getAttribute("shininess"))
+                    (int) XmlPrimitivesParser.parseDouble(element.getAttribute("nShininess"))
             );
             hasMaterial = true;
         }

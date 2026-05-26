@@ -76,8 +76,12 @@ final class XmlLightsParser {
      * @return a new DirectionalLight built from the element attributes
      */
     private static LightSource parseDirectionalLight(Element element) {
-        Color intensity = XmlPrimitivesParser.parseColor(element.getAttribute("intensity"));
-        Vector direction = XmlPrimitivesParser.parseVector(element.getAttribute("direction"));
+        Color intensity = XmlPrimitivesParser.parseColor(
+                XmlPrimitivesParser.getRequiredAttribute(element, "intensity")
+        );
+        Vector direction = XmlPrimitivesParser.parseVector(
+                XmlPrimitivesParser.getRequiredAttribute(element, "direction")
+        );
         return new DirectionalLight(intensity, direction);
     }
 
@@ -88,8 +92,12 @@ final class XmlLightsParser {
      * @return a new PointLight built from the element attributes
      */
     private static LightSource parsePointLight(Element element) {
-        Color intensity = XmlPrimitivesParser.parseColor(element.getAttribute("intensity"));
-        Point position = XmlPrimitivesParser.parsePoint(element.getAttribute("position"));
+        Color intensity = XmlPrimitivesParser.parseColor(
+                XmlPrimitivesParser.getRequiredAttribute(element, "intensity")
+        );
+        Point position = XmlPrimitivesParser.parsePoint(
+                XmlPrimitivesParser.getRequiredAttribute(element, "position")
+        );
         double kC = element.hasAttribute("kC")
                 ? Double.parseDouble(element.getAttribute("kC"))
                 : 1.0;
@@ -105,15 +113,22 @@ final class XmlLightsParser {
     }
 
     /**
-     * Parse a spot light element.
+     * Parse a spotlight element.
      *
      * @param element element with attributes: intensity, point, direction, optional kC, kL, kQ
      * @return a new SpotLight built from the element attributes
      */
     private static LightSource parseSpotLight(Element element) {
-        Color intensity = XmlPrimitivesParser.parseColor(element.getAttribute("intensity"));
-        Point position = XmlPrimitivesParser.parsePoint(element.getAttribute("position"));
-        Vector direction = XmlPrimitivesParser.parseVector(element.getAttribute("direction"));
+        Color intensity = XmlPrimitivesParser.parseColor(
+                XmlPrimitivesParser.getRequiredAttribute(element, "intensity")
+        );
+        Point position = XmlPrimitivesParser.parsePoint(
+                XmlPrimitivesParser.getRequiredAttribute(element, "position")
+        );
+        Vector direction = XmlPrimitivesParser.parseVector(
+                XmlPrimitivesParser.getRequiredAttribute(element, "direction")
+        );
+
         double kC = element.hasAttribute("kC")
                 ? Double.parseDouble(element.getAttribute("kC"))
                 : 1.0;
