@@ -52,6 +52,17 @@ public class Ray {
         this._direction = _direction.normalize();
     }
 
+    /**
+     * Constructs a ray from an origin point, a direction vector, and a normal vector.
+     * <p>
+     * This constructor is used to create secondary rays (e.g., reflection or refraction rays) that start slightly offset from the surface to avoid precision issues.
+     * The normal vector is used to determine the direction of the offset, ensuring that the ray starts outside the geometry.
+     * </p>
+     *
+     * @param origin    origin point of the ray
+     * @param direction direction vector of the ray (will be normalized)
+     * @param normal    normal vector at the ray's origin, used to determine the offset direction
+     */
     public Ray(Point origin, Vector direction, Vector normal) {
         Vector delta = normal.scale(isZero(normal.dotProduct(direction)) ? DELTA : DELTA * Math.signum(normal.dotProduct(direction)));
         this._origin = origin.add(delta);

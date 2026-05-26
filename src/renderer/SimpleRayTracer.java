@@ -125,6 +125,7 @@ class SimpleRayTracer extends RayTracerBase {
      * </p>
      *
      * @param intersection the intersection point with a geometry
+     * @param k            the accumulated contribution factor from global effects
      * @return the color contribution of local lighting effects
      */
     private Color calcColorLocalEffect(Intersection intersection, Double3 k) {
@@ -314,12 +315,27 @@ class SimpleRayTracer extends RayTracerBase {
         );
     }
 
+    /**
+     * Finds the closest intersection of a ray with the scene geometries.
+     *
+     * @param ray the ray for which to find the closest intersection
+     * @return the closest intersection, or {@code null} if there are no intersections
+     */
     private Intersection findClosestIntersection(Ray ray) {
         var intersections = _scene.geometries.calcIntersections(ray);
 
         return ray.findClosestIntersection(intersections);
     }
 
+    /**
+     * Computes the transparency factor at an intersection.
+     * <p>
+     * The method sends a shadow ray from the intersection point toward the light source. If another geometry intersects this ray before the light source, the transparency factor is reduced by the transparency coefficient of the intersecting geometry. If the accumulated transparency factor becomes smaller than a threshold, the method returns zero, indicating that the point is effectively in shadow with respect to the light source.
+     * </p>
+     *
+     * @param intersection the intersection point being tested for transparency
+     * @return the transparency factor, where 1 means fully transparent and 0 means fully opaque
+     */
     private Double3 transparency(Intersection intersection) {
         Vector pointToLight = intersection.l.scale(-1);
 
