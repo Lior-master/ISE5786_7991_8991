@@ -134,8 +134,28 @@ class TransparencyReflectionTests {
         XmlImageLoader.loadImage("C:/Users/user/Desktop/MINIP Andass/ISE5786_7991_8991/xml/XMLstage8AllOption.xml");
     }
 
+    /**
+     * Test for the XML file with the spheres on checkerboard scene, with a different view than the one in the XML file, to check that the XML file is not view-dependent and that the scene is correctly loaded and rendered from different angles.
+     * Bonus normal view
+     */
     @Test
     void XmlTest2() {
         XmlImageLoader.loadImage("xml/XMLstage8_3_SpheresOnCheckerboard.xml");
+    }
+
+    /**
+     * bonus view from the top
+     */
+    @Test
+    void XmlTest3() {
+        XmlImageLoader.loadImage("xml/stage8_3spheresOnCheckbord_plongeanteView.xml");
+    }
+
+    /**
+     * bonus view from the right
+     */
+    @Test
+    void XmlTest4() {
+        XmlImageLoader.loadImage("xml/stage8_3spheres_diagonalView.xml");
     }
 }
