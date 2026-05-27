@@ -146,10 +146,36 @@ public final class XmlImageLoader {
      * @param xmlPath XML file path
      * @return image name without extension
      */
+    /**
+     * Gets the output image name.
+     * <p>
+     * Priority:
+     * <ol>
+     *     <li>{@code <image name="..."/>}</li>
+     *     <li>{@code <scene image-name="...">}</li>
+     *     <li>XML file name without extension</li>
+     * </ol>
+     *
+     * @param root    root XML element
+     * @param xmlPath XML file path
+     * @return output image name without extension
+     */
     private static String getImageName(Element root, String xmlPath) {
-        return XmlPrimitivesParser.hasAttribute(root, "image-name")
-                ? root.getAttribute("image-name")
-                : getFileNameWithoutExtension(xmlPath);
+        var imageNodes = root.getElementsByTagName("image");
+
+        if (imageNodes.getLength() > 0) {
+            Element imageElement = (Element) imageNodes.item(0);
+
+            if (XmlPrimitivesParser.hasAttribute(imageElement, "name")) {
+                return imageElement.getAttribute("name");
+            }
+        }
+
+        if (XmlPrimitivesParser.hasAttribute(root, "image-name")) {
+            return root.getAttribute("image-name");
+        }
+
+        return getFileNameWithoutExtension(xmlPath);
     }
 
     /**
