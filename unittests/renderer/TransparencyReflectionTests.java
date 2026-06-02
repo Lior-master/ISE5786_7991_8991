@@ -129,6 +129,9 @@ class TransparencyReflectionTests {
                 .writeToImage("refractionShadow");
     }
 
+    /**
+     * basic picture to test all feature of the xml parser
+     */
     @Test
     void XmlTest() {
         XmlImageLoader.loadImage("C:/Users/user/Desktop/MINIP Andass/ISE5786_7991_8991/xml/XMLstage8AllOption.xml");
