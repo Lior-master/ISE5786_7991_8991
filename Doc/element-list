@@ -4,5 +4,6 @@ lighting
 parser
 primitives
 renderer
+renderer.sampling
 scene
 test
