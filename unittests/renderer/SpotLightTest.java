@@ -1,11 +1,17 @@
 package renderer;
 
+import java.util.List;
+
+import lighting.LightSample;
 import lighting.LightSource;
 import lighting.SpotLight;
 import org.junit.jupiter.api.Test;
 import primitives.Color;
 import primitives.Point;
 import primitives.Vector;
+import renderer.sampling.Blackboard;
+import renderer.sampling.SamplingPattern;
+import renderer.sampling.SamplingShape;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -133,5 +139,36 @@ class SpotLightTests {
         assertEquals(INTENSITY.getColor(),
                 light.getIntensity(LIGHT_POSITION).getColor(),
                 ERROR_INTENSITY);
+    }
+
+    /**
+     * Test method for {@link SpotLight#getSamples(Point)} with a regular rectangle sampling pattern.
+     * <p>
+     * This test verifies that the spotlight generates the correct number of samples and that each sample direction is normalized.
+     * </p>
+     */
+    @Test
+    void testGetSamplesRegularRectangle() {
+        SpotLight light = new SpotLight(
+                new Color(500, 500, 500),
+                new Point(0, 0, 10),
+                new Vector(0, 0, -1)
+        ).setBlackboard(
+                new Blackboard()
+                        .setSize(20)
+                        .setGridSize(3)
+                        .setShape(SamplingShape.RECTANGLE)
+                        .setPattern(SamplingPattern.REGULAR)
+        );
+
+        Point point = new Point(0, 0, 0);
+
+        List<LightSample> samples = light.getSamples(point);
+
+        assertEquals(9, samples.size(), "3x3 spotlight sampling should create 9 samples");
+
+        for (LightSample sample : samples) {
+            assertEquals(1, sample.l().length(), DELTA, "Sample direction should be normalized");
+        }
     }
 }

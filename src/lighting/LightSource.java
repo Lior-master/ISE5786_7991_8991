@@ -1,5 +1,7 @@
 package lighting;
 
+import java.util.List;
+
 import primitives.Color;
 import primitives.Point;
 import primitives.Vector;
@@ -35,4 +37,18 @@ public interface LightSource {
      * @return the distance from the light source to the given point
      */
     double getDistance(Point point);
+
+    /**
+     * Generates a list of light samples for the given point.
+     *
+     * @param point the point being illuminated
+     * @return list of light samples, by default containing a single sample with the light direction, distance, and intensity at the given point
+     */
+    default List<LightSample> getSamples(Point point) {
+        return List.of(new LightSample(
+                getL(point),
+                getDistance(point),
+                getIntensity(point)
+        ));
+    }
 }

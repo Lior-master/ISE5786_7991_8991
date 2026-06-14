@@ -1,8 +1,13 @@
 package lighting;
 
+import java.util.List;
+
 import primitives.Color;
 import primitives.Point;
 import primitives.Vector;
+import renderer.sampling.Blackboard;
+
+import static primitives.Util.isZero;
 
 /**
  * Represents a point light source in the scene.
@@ -36,6 +41,8 @@ public class PointLight extends Light implements LightSource {
      * Quadratic attenuation factor.
      */
     private double _kQ = 0;
+
+    private Blackboard _blackboard = new Blackboard();
 
     /**
      * Constructs a point light with the given intensity, position,
@@ -82,6 +89,74 @@ public class PointLight extends Light implements LightSource {
         return this;
     }
 
+    /**
+     * Sets the blackboard used to generate soft shadow samples.
+     *
+     * @param blackboard the blackboard configuration to use
+     * @return this point light instance
+     * @throws IllegalArgumentException if {@code blackboard} is {@code null}
+     */
+    public PointLight setBlackboard(Blackboard blackboard) {
+        if (blackboard == null) {
+            throw new IllegalArgumentException("Blackboard cannot be null");
+        }
+        _blackboard = blackboard;
+        return this;
+    }
+
+    /**
+     * Returns the direction used as the sampling normal for this light.
+     *
+     * @param point the point being illuminated
+     * @return the sampling normal vector
+     */
+    protected Vector getSamplingNormal(Point point) {
+        return getL(point);
+    }
+
+    /**
+     * Creates a unit vector orthogonal to the given normal.
+     *
+     * @param normal the reference normal vector
+     * @return a normalized vector orthogonal to {@code normal}
+     */
+    private Vector createOrthogonal(Vector normal) {
+        if (!isZero(Math.abs(normal.dotProduct(Vector.AXIS_X)) - 1)) {
+            return normal.crossProduct(Vector.AXIS_X).normalize();
+        }
+
+        return normal.crossProduct(Vector.AXIS_Y).normalize();
+    }
+
+    /**
+     * Creates a light sample from the light to a sampled point.
+     *
+     * @param point the shaded point
+     * @param samplePoint the sampled light position
+     * @return a light sample containing direction, distance, and intensity
+     */
+    protected LightSample createLightSample(Point point, Point samplePoint) {
+        Vector l = point.subtract(samplePoint).normalize();
+        double distance = point.distance(samplePoint);
+        Color intensity = getIntensityFrom(point, samplePoint);
+
+        return new LightSample(l, distance, intensity);
+    }
+
+    /**
+     * Computes the attenuated intensity from this light toward a sample point.
+     *
+     * @param point the shaded point
+     * @param samplePoint the sampled light position
+     * @return the attenuated light intensity
+     */
+    protected Color getIntensityFrom(Point point, Point samplePoint) {
+        double d = point.distance(samplePoint);
+        double attenuation = _kC + _kL * d + _kQ * d * d;
+
+        return getIntensity().scale(1.0 / attenuation);
+    }
+
     @Override
     public Color getIntensity(Point p) {
         double distance = _position.distance(p);
@@ -97,5 +172,19 @@ public class PointLight extends Light implements LightSource {
     @Override
     public double getDistance(Point point) {
         return _position.distance(point);
+    }
+
+    @Override
+    public List<LightSample> getSamples(Point point) {
+        Vector normal = getSamplingNormal(point);
+
+        Vector axisX = createOrthogonal(normal);
+        Vector axisY = normal.crossProduct(axisX).normalize();
+
+        List<Point> samplePoints = _blackboard.generatePoints(_position, axisX, axisY);
+
+        return samplePoints.stream()
+                .map(samplePoint -> createLightSample(point, samplePoint))
+                .toList();
     }
 }

@@ -19,7 +19,7 @@ public class Blackboard {
     /**
      * Default constructor for Javadoc tools.
      */
-    Blackboard() {/* to satisfy javadoc generator */}
+    public Blackboard() {/* to satisfy javadoc generator */}
 
     /**
      * Width of the sampling area. Must be non-negative.

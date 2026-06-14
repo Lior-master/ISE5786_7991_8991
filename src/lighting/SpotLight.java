@@ -4,6 +4,7 @@ import primitives.Color;
 import primitives.Double3;
 import primitives.Point;
 import primitives.Vector;
+import renderer.sampling.Blackboard;
 
 import static primitives.Util.alignZero;
 
@@ -70,5 +71,29 @@ public class SpotLight extends PointLight {
     @Override
     public SpotLight setKq(double kQ) {
         return (SpotLight) super.setKq(kQ);
+    }
+
+    @Override
+    protected Vector getSamplingNormal(Point p) {
+        return _direction;
+    }
+
+    @Override
+    protected Color getIntensityFrom(Point point, Point samplePoint) {
+        Vector l = point.subtract(samplePoint).normalize();
+
+        double factor = alignZero(_direction.dotProduct(l));
+
+        if (factor <= 0) {
+            return Color.BLACK;
+        }
+
+        return super.getIntensityFrom(point, samplePoint).scale(factor);
+    }
+
+    @Override
+    public SpotLight setBlackboard(Blackboard blackboard) {
+        super.setBlackboard(blackboard);
+        return this;
     }
 }
