@@ -1,6 +1,7 @@
 package renderer;
 
 import geometries.api.Intersectable.Intersection;
+import lighting.LightSample;
 import lighting.LightSource;
 import primitives.Color;
 import primitives.Ray;
@@ -61,6 +62,22 @@ abstract class RayTracerBase {
         intersection.light = light;
         intersection.l = light.getL(intersection.point);
         intersection.lNormal = alignZero(intersection.l.dotProduct(intersection.normal));
+        return intersection.lNormal * intersection.vNormal > 0;
+    }
+
+    /**
+     * Preprocesses the light sample by calculating the light vector and the dot product of the light vector and the normal.
+     *
+     * @param intersection for which to preprocess
+     * @param light        light source to preprocess
+     * @param sample       light sample to preprocess
+     * @return boolean value indicating whether the light sample is valid for further processing (i.e., not parallel to the normal)
+     */
+    protected boolean preprocessLightSample(Intersection intersection, LightSource light, LightSample sample) {
+        intersection.light = light;
+        intersection.l = sample.l();
+        intersection.lNormal = alignZero(intersection.l.dotProduct(intersection.normal));
+
         return intersection.lNormal * intersection.vNormal > 0;
     }
 }

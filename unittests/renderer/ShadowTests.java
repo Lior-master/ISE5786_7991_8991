@@ -10,6 +10,9 @@ import primitives.Color;
 import primitives.Material;
 import primitives.Point;
 import primitives.Vector;
+import renderer.sampling.Blackboard;
+import renderer.sampling.SamplingPattern;
+import renderer.sampling.SamplingShape;
 import scene.Scene;
 
 import static java.awt.Color.BLUE;
@@ -149,8 +152,31 @@ class ShadowTests {
     @Test
     void testTrianglesSphere() {
         setTrianglesSphereScene();
-        _scene.lights.add(createSpotForTrianglesSpere());
+        _scene.lights.add(createSpotForTrianglesSpere().setBlackboard(
+                new Blackboard()
+                        .setSize(0)
+                        .setGridSize(1)
+                        .setShape(SamplingShape.RECTANGLE)
+                        .setPattern(SamplingPattern.REGULAR)
+        ));
         renderSceneToImage("shadowTrianglesSphere", false, false);
+    }
+
+    /**
+     * Produce a picture of a two triangles lighted by a spot light with a Sphere using soft Shadow settings
+     */
+    @Test
+    void testTrianglesSphereSoftShadow() {
+        setTrianglesSphereScene();
+        _scene.lights.add(createSpotForTrianglesSpere().setBlackboard(
+                        new Blackboard()
+                                .setSize(30)
+                                .setGridSize(10)
+                                .setShape(SamplingShape.CIRCLE)
+                                .setPattern(SamplingPattern.REGULAR)
+                )
+        );
+        renderSceneToImage("shadowTrianglesSphereSoftShadow", false, false);
     }
 
     /**

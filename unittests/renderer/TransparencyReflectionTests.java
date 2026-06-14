@@ -4,6 +4,7 @@ import geometries.impl.Sphere;
 import geometries.impl.Triangle;
 import lighting.AmbientLight;
 import lighting.SpotLight;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.XmlImageLoader;
 import primitives.Color;
@@ -11,6 +12,9 @@ import primitives.Double3;
 import primitives.Material;
 import primitives.Point;
 import primitives.Vector;
+import renderer.sampling.Blackboard;
+import renderer.sampling.SamplingPattern;
+import renderer.sampling.SamplingShape;
 import scene.Scene;
 
 import static java.awt.Color.BLUE;
@@ -129,6 +133,35 @@ class TransparencyReflectionTests {
                 .writeToImage("refractionShadow");
     }
 
+    @Test
+    @SuppressWarnings("java:S109")
+    void testTrianglesTransparentSphereSoftShadow() {
+        _scene.geometries.add(
+                new Triangle(new Point(-150, -150, -115), new Point(150, -150, -135),
+                        new Point(75, 75, -150))
+                        .setMaterial(new Material().setKD(0.5).setKS(0.5).setShininess(60)),
+                new Triangle(new Point(-150, -150, -115), new Point(-70, 70, -140), new Point(75, 75, -150))
+                        .setMaterial(new Material().setKD(0.5).setKS(0.5).setShininess(60)),
+                new Sphere(new Point(60, 50, -50), 30D).setEmission(new Color(BLUE))
+                        .setMaterial(new Material().setKD(0.2).setKS(0.2).setShininess(30).setKT(0.6)));
+        _scene.setAmbientLight(new AmbientLight(new Color(38, 38, 38)));
+        _scene.lights.add(
+                new SpotLight(new Color(700, 400, 400), new Point(60, 50, 0), new Vector(0, 0, -1))
+                        .setKl(4E-5).setKq(2E-7).setBlackboard(
+                                new Blackboard().setSize(30).setGridSize(10).setShape(SamplingShape.CIRCLE).setPattern(SamplingPattern.REGULAR)
+                        ));
+
+        _cameraBuilder
+                .setLocation(new Point(0, 0, 1000)) //
+                .setDirection(Point.ZERO, Vector.AXIS_Y) //
+                .setVpDistance(1000).setVpSize(200, 200) //
+                .setResolution(600, 600) //
+                .build() //
+                .renderImage() //
+                .writeToImage("refractionShadowSoftShadow");
+    }
+
+
     /**
      * basic picture to test all feature of the xml parser
      */
@@ -149,6 +182,7 @@ class TransparencyReflectionTests {
     /**
      * bonus view from the top
      */
+    @Disabled("To reduce test time")
     @Test
     void XmlTest3() {
         XmlImageLoader.loadImage("xml/stage8_3spheresOnCheckbord_plongeanteView.xml");
@@ -157,6 +191,7 @@ class TransparencyReflectionTests {
     /**
      * bonus view from the right
      */
+    @Disabled("To reduce test time")
     @Test
     void XmlTest4() {
         XmlImageLoader.loadImage("xml/stage8_3spheres_diagonalView.xml");

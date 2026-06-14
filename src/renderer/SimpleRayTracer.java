@@ -1,5 +1,8 @@
 package renderer;
 
+import java.util.List;
+
+import lighting.LightSample;
 import lighting.LightSource;
 import primitives.Color;
 import primitives.Double3;
@@ -118,10 +121,15 @@ class SimpleRayTracer extends RayTracerBase {
     /**
      * Computes the local lighting effects at an intersection.
      * <p>
-     * Local effects include the geometry emission color and the contribution of
-     * each light source using the diffuse and specular components of the Phong
-     * reflection model. A light contributes only if the point is not shadowed
-     * with respect to that light source.
+     * Local effects include the geometry emission color and the direct
+     * contribution of all external light sources. Each light source may provide
+     * one or more samples. When multiple samples are provided, their contributions
+     * are averaged in order to support soft shadows.
+     * </p>
+     * <p>
+     * This method does not handle global effects such as reflection or
+     * transparency rays. Those effects are calculated separately by the recursive
+     * global effect methods.
      * </p>
      *
      * @param intersection the intersection point with a geometry
@@ -132,19 +140,82 @@ class SimpleRayTracer extends RayTracerBase {
         Color color = intersection.geometry.getEmission();
 
         for (LightSource lightSource : _scene.lights) {
-            if (preprocessLightSource(intersection, lightSource)) {
-                Double3 ktr = transparency(intersection);
-
-                if (ktr.product(k).isGreaterThan(MIN_CALC_COLOR_K)) {
-                    color = color.add(
-                            lightSource.getIntensity(intersection.point).scale(ktr)
-                                    .scale(calcDiffuse(intersection).add(calcSpecular(intersection)))
-                    );
-                }
-            }
+            color = color.add(calcLightContribution(intersection, lightSource, k));
         }
 
         return color;
+    }
+
+    /**
+     * Computes the averaged contribution of a single light source.
+     * <p>
+     * A light source may be represented by one sample, as in the classic hard
+     * shadow model, or by multiple samples, as in soft shadow rendering. Each
+     * sample is evaluated independently, and the final contribution of the light
+     * source is the average of all sample contributions.
+     * </p>
+     * <p>
+     * Blocked samples contribute black, but they are still included in the
+     * averaging denominator. This is what creates a gradual transition between
+     * full light and full shadow.
+     * </p>
+     *
+     * @param intersection the intersection point with a geometry
+     * @param lightSource  the light source being evaluated
+     * @param k            the accumulated contribution factor from global effects
+     * @return the averaged color contribution of the light source
+     */
+    private Color calcLightContribution(Intersection intersection, LightSource lightSource, Double3 k) {
+        List<LightSample> samples = lightSource.getSamples(intersection.point);
+
+        if (samples == null || samples.isEmpty()) {
+            return Color.BLACK;
+        }
+
+        Color total = Color.BLACK;
+
+        for (LightSample sample : samples) {
+            total = total.add(calcSampleContribution(intersection, lightSource, sample, k));
+        }
+
+        return total.reduce(samples.size());
+    }
+
+    /**
+     * Computes the local lighting contribution of a single light sample.
+     * <p>
+     * The sample is first preprocessed in order to update the light direction
+     * and the dot product between the light direction and the surface normal.
+     * Then a shadow/transparency ray is sent toward this specific sample. If
+     * the sample contributes enough light, its diffuse and specular Phong
+     * components are calculated.
+     * </p>
+     *
+     * @param intersection the intersection point with a geometry
+     * @param lightSource  the light source that produced the sample
+     * @param sample       the sampled light data
+     * @param k            the accumulated contribution factor from global effects
+     * @return the color contribution of this single light sample
+     */
+    private Color calcSampleContribution(
+            Intersection intersection,
+            LightSource lightSource,
+            LightSample sample,
+            Double3 k
+    ) {
+        if (!preprocessLightSample(intersection, lightSource, sample)) {
+            return Color.BLACK;
+        }
+
+        Double3 ktr = transparency(intersection, sample);
+
+        if (!ktr.product(k).isGreaterThan(MIN_CALC_COLOR_K)) {
+            return Color.BLACK;
+        }
+
+        return sample.intensity()
+                .scale(ktr)
+                .scale(calcDiffuse(intersection).add(calcSpecular(intersection)));
     }
 
     /**
@@ -183,42 +254,6 @@ class SimpleRayTracer extends RayTracerBase {
                 : intersection.material.kS.scale(
                 Math.pow(minusVR, intersection.material.nShininess)
         );
-    }
-
-    /**
-     * Checks whether a point is unshaded with respect to the current light
-     * source stored in the intersection.
-     * <p>
-     * A shadow ray is sent from the intersection point toward the light source.
-     * If another geometry intersects this ray before the light source, the point
-     * is considered shadowed.
-     * </p>
-     *
-     * @param intersection the intersection point being tested
-     * @return {@code true} if the light reaches the point, {@code false}
-     * otherwise
-     */
-    private boolean unshaded(Intersection intersection) {
-        Vector pointToLight = intersection.l.scale(-1);
-
-        Ray shadowRay = new Ray(intersection.point, pointToLight, intersection.normal);
-
-        var shadowIntersections = _scene.geometries.calcIntersections(shadowRay);
-
-        if (shadowIntersections == null) {
-            return true;
-        }
-
-        double lightDistance = intersection.light.getDistance(intersection.point);
-
-        for (var shadowIntersection : shadowIntersections) {
-            if (alignZero(shadowIntersection.point.distance(intersection.point) - lightDistance) <= 0
-                    && shadowIntersection.material.kT.isLowerThan(MIN_CALC_COLOR_K)) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     /**
@@ -281,7 +316,6 @@ class SimpleRayTracer extends RayTracerBase {
             return _scene.background.scale(coefficient);
         }
 
-
         return preprocessIntersection(intersection, secondaryRay.direction())
                 ? calcColor(intersection, level - 1, kkx).scale(coefficient)
                 : Color.BLACK;
@@ -328,16 +362,28 @@ class SimpleRayTracer extends RayTracerBase {
     }
 
     /**
-     * Computes the transparency factor at an intersection.
+     * Computes the transparency factor between an intersection point and a
+     * specific sampled light point.
      * <p>
-     * The method sends a shadow ray from the intersection point toward the light source. If another geometry intersects this ray before the light source, the transparency factor is reduced by the transparency coefficient of the intersecting geometry. If the accumulated transparency factor becomes smaller than a threshold, the method returns zero, indicating that the point is effectively in shadow with respect to the light source.
+     * A shadow ray is sent from the intersection point toward the sampled light
+     * position. Every geometry intersected before the sampled light point reduces
+     * the transparency factor according to its material transparency coefficient
+     * {@code kT}. If the accumulated transparency becomes smaller than the
+     * minimum contribution threshold, the method returns {@link Double3#ZERO}.
+     * </p>
+     * <p>
+     * This method is used both for classic hard shadows, when a light source has
+     * only one sample, and for soft shadows, when a light source provides
+     * multiple samples.
      * </p>
      *
-     * @param intersection the intersection point being tested for transparency
-     * @return the transparency factor, where 1 means fully transparent and 0 means fully opaque
+     * @param intersection the intersection point being tested for light visibility
+     * @param sample       the sampled light data toward which the shadow ray is sent
+     * @return the transparency factor, where {@link Double3#ONE} means fully visible
+     * and {@link Double3#ZERO} means fully blocked
      */
-    private Double3 transparency(Intersection intersection) {
-        Vector pointToLight = intersection.l.scale(-1);
+    private Double3 transparency(Intersection intersection, LightSample sample) {
+        Vector pointToLight = sample.l().scale(-1);
 
         Ray shadowRay = new Ray(intersection.point, pointToLight, intersection.normal);
 
@@ -349,7 +395,7 @@ class SimpleRayTracer extends RayTracerBase {
             return ktr;
         }
 
-        double lightDistance = intersection.light.getDistance(intersection.point);
+        double lightDistance = sample.distance();
 
         for (var shadowIntersection : shadowIntersections) {
             if (alignZero(shadowIntersection.point.distance(intersection.point) - lightDistance) <= 0) {
