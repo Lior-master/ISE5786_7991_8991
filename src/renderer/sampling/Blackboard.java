@@ -7,6 +7,7 @@ import primitives.Point;
 import primitives.Vector;
 
 import static primitives.Util.isZero;
+import static primitives.Util.random;
 
 /**
  * Generates 2D sampling points on a target area.
@@ -204,27 +205,83 @@ public class Blackboard {
 
     /**
      * Generate samples distributed randomly within the sampling area.
-     * The number of samples generated is determined by the gridSize.
+     * The number of samples generated is gridSize * gridSize.
+     * If the sampling shape is CIRCLE, only samples inside the circle are kept.
      *
      * @return list of randomly distributed Sample2D offsets
      */
     private List<Sample2D> generateRandomSamples() {
-        // Random sampling is not implemented yet.
-        // When implemented this should return `gridSize * gridSize` or
-        // an appropriate number of samples distributed randomly within the shape.
-        throw new UnsupportedOperationException("Random sampling not implemented yet");
+
+        if (isZero(width) || isZero(height) || gridSize == 1) {
+            return List.of(new Sample2D(0, 0));
+        }
+
+        List<Sample2D> samples = new LinkedList<>();
+
+        int samplesAmount = gridSize * gridSize;
+
+        double minX = -width / 2;
+        double maxX = width / 2;
+        double minY = -height / 2;
+        double maxY = height / 2;
+
+        double radius = Math.min(width, height) / 2;
+
+        for (int i = 0; i < samplesAmount; i++) {
+            double x = random(minX, maxX);
+            double y = random(minY, maxY);
+
+            if (shape == SamplingShape.CIRCLE && x * x + y * y > radius * radius) {
+                continue;
+            }
+
+            samples.add(new Sample2D(x, y));
+        }
+
+        return samples;
     }
 
     /**
      * Generate samples with jittered distribution within the sampling area.
-     * Each grid cell contains a single sample at a random offset within the cell.
+     * Each grid cell contains one sample randomly placed inside that cell.
+     * The grid is centered around (0,0). If the sampling shape is CIRCLE,
+     * samples outside the circle are discarded.
      *
      * @return list of jittered Sample2D offsets
      */
     private List<Sample2D> generateJitteredSamples() {
-        // Jittered sampling is not implemented yet.
-        // When implemented this should return samples where each grid cell
-        // contains a single sample at a random offset within the cell.
-        throw new UnsupportedOperationException("Jittered sampling not implemented yet");
+
+        if (isZero(width) || isZero(height) || gridSize == 1) {
+            return List.of(new Sample2D(0, 0));
+        }
+
+        List<Sample2D> samples = new LinkedList<>();
+
+        double stepX = width / gridSize;
+        double stepY = height / gridSize;
+
+        double startX = -width / 2;
+        double startY = -height / 2;
+
+        double radius = Math.min(width, height) / 2;
+
+        for (int i = 0; i < gridSize; i++) {
+            for (int j = 0; j < gridSize; j++) {
+
+                double cellMinX = startX + j * stepX;
+                double cellMinY = startY + i * stepY;
+
+                double x = random(cellMinX, cellMinX + stepX);
+                double y = random(cellMinY, cellMinY + stepY);
+
+                if (shape == SamplingShape.CIRCLE && x * x + y * y > radius * radius) {
+                    continue;
+                }
+
+                samples.add(new Sample2D(x, y));
+            }
+        }
+
+        return samples;
     }
 }
