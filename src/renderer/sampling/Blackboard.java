@@ -140,7 +140,14 @@ public class Blackboard {
         };
     }
 
-    // Generate regular grid points directly (avoids creating intermediate Sample2D list)
+    /**
+     * Generate a regular grid of points within the sampling area.
+     *
+     * @param center the center point of the sampling area
+     * @param axisX  the direction corresponding to the sample x-axis
+     * @param axisY  the direction corresponding to the sample y-axis
+     * @return list of transformed points in world coordinates
+     */
     private List<Point> generateRegularPoints(Point center, Vector axisX, Vector axisY) {
         if (isZero(width) || isZero(height) || gridSize == 1) {
             return List.of(center);
@@ -176,7 +183,14 @@ public class Blackboard {
         return points;
     }
 
-    // Generate random distributed points directly
+    /**
+     * Generate random points within the sampling area.
+     *
+     * @param center the center point of the sampling area
+     * @param axisX  the direction corresponding to the sample x-axis
+     * @param axisY  the direction corresponding to the sample y-axis
+     * @return list of transformed points in world coordinates
+     */
     private List<Point> generateRandomPoints(Point center, Vector axisX, Vector axisY) {
         if (isZero(width) || isZero(height) || gridSize == 1) {
             return List.of(center);
@@ -211,7 +225,14 @@ public class Blackboard {
         return points;
     }
 
-    // Generate jittered points directly (one random sample per grid cell)
+    /**
+     * Generate jittered points within the sampling area.
+     *
+     * @param center the center point of the sampling area
+     * @param axisX  the direction corresponding to the sample x-axis
+     * @param axisY  the direction corresponding to the sample y-axis
+     * @return list of transformed points in world coordinates
+     */
     private List<Point> generateJitteredPoints(Point center, Vector axisX, Vector axisY) {
         if (isZero(width) || isZero(height) || gridSize == 1) {
             return List.of(center);

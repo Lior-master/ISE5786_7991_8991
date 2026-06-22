@@ -40,6 +40,9 @@ public class PointLight extends Light implements LightSource {
      */
     private double _kQ = 0;
 
+    /**
+     * The blackboard used to generate soft shadow samples.
+     */
     private Blackboard _blackboard = new Blackboard();
 
     /**

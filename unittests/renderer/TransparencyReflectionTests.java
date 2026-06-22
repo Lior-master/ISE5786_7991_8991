@@ -132,6 +132,10 @@ class TransparencyReflectionTests {
                 .writeToImage("refractionShadow");
     }
 
+    /**
+     * Produce a picture of two triangles lighted by a spotlight with a
+     * partially transparent Sphere producing partial shadow with soft shadow effect
+     */
     @Test
     @SuppressWarnings("java:S109")
     void testTrianglesTransparentSphereSoftShadow() {
