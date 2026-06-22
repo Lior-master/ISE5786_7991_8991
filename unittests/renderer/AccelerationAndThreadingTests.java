@@ -353,11 +353,11 @@ class AccelerationAndThreadingTests {
         cameraBuilder.setResolution(200, 200).build().renderImage();
         long end = System.nanoTime();
 
-        System.out.println("Without multithreading time: " + ((start - end) / 1_000_000_000.0) + " seconds");
+        System.out.println("Without multithreading time: " + ((end - start) / 1_000_000_000.0) + " seconds");
 
         start = System.nanoTime();
         cameraBuilder.setMultithreading(4).build().renderImage();
         end = System.nanoTime();
-        System.out.println("With 4 threads time: " + ((start - end) / 1_000_000_000.0) + " seconds");
+        System.out.println("With 4 threads time: " + ((end - start) / 1_000_000_000.0) + " seconds");
     }
 }
