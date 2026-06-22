@@ -126,7 +126,8 @@ class TransparencyReflectionTests {
                 .setLocation(new Point(0, 0, 1000)) //
                 .setDirection(Point.ZERO, Vector.AXIS_Y) //
                 .setVpDistance(1000).setVpSize(200, 200) //
-                .setResolution(600, 600) //
+                .setResolution(600, 600)
+                .setMultithreading(16)//
                 .build() //
                 .renderImage() //
                 .writeToImage("refractionShadow");
@@ -159,6 +160,7 @@ class TransparencyReflectionTests {
                 .setDirection(Point.ZERO, Vector.AXIS_Y) //
                 .setVpDistance(1000).setVpSize(200, 200) //
                 .setResolution(600, 600) //
+                .setMultithreading(16)
                 .build() //
                 .renderImage() //
                 .writeToImage("refractionShadowSoftShadow");
