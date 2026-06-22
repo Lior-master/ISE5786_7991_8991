@@ -4,7 +4,6 @@ import geometries.impl.Sphere;
 import geometries.impl.Triangle;
 import lighting.AmbientLight;
 import lighting.SpotLight;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import parser.XmlImageLoader;
 import primitives.Color;
@@ -182,7 +181,6 @@ class TransparencyReflectionTests {
     /**
      * bonus view from the top
      */
-    @Disabled("To reduce test time")
     @Test
     void XmlTest3() {
         XmlImageLoader.loadImage("xml/stage8_3spheresOnCheckbord_plongeanteView.xml");
@@ -191,7 +189,6 @@ class TransparencyReflectionTests {
     /**
      * bonus view from the right
      */
-    @Disabled("To reduce test time")
     @Test
     void XmlTest4() {
         XmlImageLoader.loadImage("xml/stage8_3spheres_diagonalView.xml");

@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
  * Benchmark tests for Camera multithreading.
  */
 @SuppressWarnings("java:S109")
+@Disabled("already tested and take to much time")
 class MultiThreadingBenchmarkTest {
 
     /**
