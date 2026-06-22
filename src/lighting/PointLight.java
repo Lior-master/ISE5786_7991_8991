@@ -7,8 +7,6 @@ import primitives.Point;
 import primitives.Vector;
 import renderer.sampling.Blackboard;
 
-import static primitives.Util.isZero;
-
 /**
  * Represents a point light source in the scene.
  * <p>
@@ -115,23 +113,9 @@ public class PointLight extends Light implements LightSource {
     }
 
     /**
-     * Creates a unit vector orthogonal to the given normal.
-     *
-     * @param normal the reference normal vector
-     * @return a normalized vector orthogonal to {@code normal}
-     */
-    private Vector createOrthogonal(Vector normal) {
-        if (!isZero(Math.abs(normal.dotProduct(Vector.AXIS_X)) - 1)) {
-            return normal.crossProduct(Vector.AXIS_X).normalize();
-        }
-
-        return normal.crossProduct(Vector.AXIS_Y).normalize();
-    }
-
-    /**
      * Creates a light sample from the light to a sampled point.
      *
-     * @param point the shaded point
+     * @param point       the shaded point
      * @param samplePoint the sampled light position
      * @return a light sample containing direction, distance, and intensity
      */
@@ -146,7 +130,7 @@ public class PointLight extends Light implements LightSource {
     /**
      * Computes the attenuated intensity from this light toward a sample point.
      *
-     * @param point the shaded point
+     * @param point       the shaded point
      * @param samplePoint the sampled light position
      * @return the attenuated light intensity
      */
@@ -178,7 +162,7 @@ public class PointLight extends Light implements LightSource {
     public List<LightSample> getSamples(Point point) {
         Vector normal = getSamplingNormal(point);
 
-        Vector axisX = createOrthogonal(normal);
+        Vector axisX = normal.createOrthogonal();
         Vector axisY = normal.crossProduct(axisX).normalize();
 
         List<Point> samplePoints = _blackboard.generatePoints(_position, axisX, axisY);

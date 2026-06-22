@@ -383,9 +383,7 @@ class SimpleRayTracer extends RayTracerBase {
      * and {@link Double3#ZERO} means fully blocked
      */
     private Double3 transparency(Intersection intersection, LightSample sample) {
-        Vector pointToLight = sample.l().scale(-1);
-
-        Ray shadowRay = new Ray(intersection.point, pointToLight, intersection.normal);
+        Ray shadowRay = new Ray(intersection.point, sample.l().scale(-1), intersection.normal);
 
         var shadowIntersections = _scene.geometries.calcIntersections(shadowRay);
 
@@ -395,10 +393,8 @@ class SimpleRayTracer extends RayTracerBase {
             return ktr;
         }
 
-        double lightDistance = sample.distance();
-
         for (var shadowIntersection : shadowIntersections) {
-            if (alignZero(shadowIntersection.point.distance(intersection.point) - lightDistance) <= 0) {
+            if (alignZero(shadowIntersection.point.distance(intersection.point) - sample.distance()) <= 0) {
                 ktr = ktr.product(shadowIntersection.material.kT);
 
                 if (ktr.isLowerThan(MIN_CALC_COLOR_K)) {

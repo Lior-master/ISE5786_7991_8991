@@ -1,5 +1,7 @@
 package primitives;
 
+import static primitives.Util.isZero;
+
 /**
  * Represents a non-zero 3D vector in Cartesian space.
  * <p>
@@ -123,6 +125,19 @@ public class Vector extends Point {
         if (Util.isZero(len))
             throw new ArithmeticException("Cannot normalize a zero-length vector");
         return new Vector(this._xyz.divide(len));
+    }
+
+    /**
+     * Creates a unit vector orthogonal to the given normal.
+     *
+     * @return a normalized vector orthogonal to {@code normal}
+     */
+    public Vector createOrthogonal() {
+        if (!isZero(Math.abs(dotProduct(Vector.AXIS_X)) - 1)) {
+            return crossProduct(Vector.AXIS_X).normalize();
+        }
+
+        return crossProduct(Vector.AXIS_Y).normalize();
     }
 
     @Override
