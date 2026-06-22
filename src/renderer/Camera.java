@@ -1,11 +1,14 @@
 package renderer;
 
+import java.util.LinkedList;
 import java.util.MissingResourceException;
+import java.util.stream.IntStream;
 
 import primitives.Color;
 import primitives.Point;
 import primitives.Ray;
 import primitives.Vector;
+import renderer.PixelManager.Pixel;
 import scene.Scene;
 
 import static primitives.Util.isZero;
@@ -20,39 +23,88 @@ import static primitives.Util.isZero;
  * </p>
  */
 public class Camera implements Cloneable {
-
-    /** Camera origin point. */
+    /**
+     * Amount of threads to use fore rendering image by the camera
+     */
+    private int threadsCount = 0;
+    /**
+     * Amount of threads to spare for Java VM threads:<br>
+     * Spare threads if trying to use all the cores
+     */
+    private static final int SPARE_THREADS = 2;
+    /**
+     * Debug print interval in seconds (for progress percentage)<br>
+     * if it is zero - there is no progress output
+     */
+    private double printInterval = 0;
+    /**
+     * Pixel manager for supporting:
+     * <ul>
+     * <li>multi-threading</li>
+     * <li>debug print of progress percentage in Console window/tab</li>
+     * </ul>
+     */
+    private PixelManager pixelManager;
+    /**
+     * Camera origin point.
+     */
     private Point _p0;
 
-    /** Forward camera axis. */
+    /**
+     * Forward camera axis.
+     */
     private Vector _vTo;
-    /** Up camera axis. */
+    /**
+     * Up camera axis.
+     */
     private Vector _vUp;
-    /** Right camera axis. */
+    /**
+     * Right camera axis.
+     */
     private Vector _vRight;
 
-    /** View-plane width. */
+    /**
+     * View-plane width.
+     */
     private double _width;
-    /** View-plane height. */
+    /**
+     * View-plane height.
+     */
     private double _height;
-    /** Distance from camera to view plane. */
+    /**
+     * Distance from camera to view plane.
+     */
     private double _distance;
 
-    /** Horizontal resolution (columns). */
+    /**
+     * Horizontal resolution (columns).
+     */
     private int _nX = 1;
-    /** Vertical resolution (rows). */
+    /**
+     * Vertical resolution (rows).
+     */
     private int _nY = 1;
 
-    /** Image buffer writer. */
+    /**
+     * Image buffer writer.
+     */
     private ImageWriter _imageWriter;
-    /** Active ray tracer implementation. */
+    /**
+     * Active ray tracer implementation.
+     */
     private RayTracerBase _rayTracer;
 
-    /** Cached view-plane center point. */
+    /**
+     * Cached view-plane center point.
+     */
     private Point _vpCenter;
-    /** Cached pixel width. */
+    /**
+     * Cached pixel width.
+     */
     private double _pixelWidth;
-    /** Cached pixel height. */
+    /**
+     * Cached pixel height.
+     */
     private double _pixelHeight;
 
     /**
@@ -84,14 +136,22 @@ public class Camera implements Cloneable {
          */
         private Builder() {/* to satisfy Javadoc generator */ }
 
-        /** Camera instance being configured by this builder. */
+        /**
+         * Camera instance being configured by this builder.
+         */
         private final Camera _camera = new Camera();
 
-        /** Forward direction vector, when direction is set explicitly. */
+        /**
+         * Forward direction vector, when direction is set explicitly.
+         */
         private Vector _to;
-        /** Target point, when direction is set by looking at a point. */
+        /**
+         * Target point, when direction is set by looking at a point.
+         */
         private Point _target;
-        /** Up direction vector used to define the camera orientation. */
+        /**
+         * Up direction vector used to define the camera orientation.
+         */
         private Vector _up = Vector.AXIS_Y;
 
         /**
@@ -278,6 +338,42 @@ public class Camera implements Cloneable {
             _camera._pixelWidth = _camera._width / _camera._nX;
             _camera._pixelHeight = _camera._height / _camera._nY;
         }
+
+        /**
+         * Set multi-threading <br>
+         * Parameter value meaning:
+         * <ul>
+         * <li>-2 - number of threads is number of logical processors less 2</li>
+         * <li>-1 - stream processing parallelization (implicit multi-threading) is used</li>
+         * <li>0 - multi-threading is not activated</li>
+         * <li>1 and more - literally number of threads</li>
+         * </ul>
+         *
+         * @param threads number of threads
+         * @return builder object itself
+         */
+        public Builder setMultithreading(int threads) {
+            if (threads < -3)
+                throw new IllegalArgumentException("Multithreading parameter must be -2 or higher");
+            if (threads == -2) {
+                int cores = Runtime.getRuntime().availableProcessors() - SPARE_THREADS;
+                _camera.threadsCount = cores <= 2 ? 1 : cores;
+            } else
+                _camera.threadsCount = threads;
+            return this;
+        }
+
+        /**
+         * Set debug printing interval. If it's zero - there won't be printing at all
+         *
+         * @param interval printing interval in %
+         * @return builder object itself
+         */
+        public Builder setDebugPrint(double interval) {
+            if (interval < 0) throw new IllegalArgumentException("interval parameter must be non-negative");
+            _camera.printInterval = interval;
+            return this;
+        }
     }
 
     /**
@@ -316,22 +412,17 @@ public class Camera implements Cloneable {
     }
 
     /**
-     * Renders the image by tracing one ray per pixel.
+     * Renders the image by casting rays through all pixels and writing their colors.
      *
      * @return this camera
      */
     public Camera renderImage() {
-        if (_imageWriter == null || _rayTracer == null) {
-            throw new MissingResourceException("Missing render resources", Camera.class.getName(), "");
-        }
-
-        for (int yIndex = 0; yIndex < _nY; yIndex++) {
-            for (int xIndex = 0; xIndex < _nX; xIndex++) {
-                castRay(xIndex, yIndex);
-            }
-        }
-
-        return this;
+        pixelManager = new PixelManager(_nY, _nX, printInterval);
+        return switch (threadsCount) {
+            case 0 -> renderImageNoThreads();
+            case -1 -> renderImageStream();
+            default -> renderImageRawThreads();
+        };
     }
 
     /**
@@ -344,6 +435,7 @@ public class Camera implements Cloneable {
         Ray ray = constructRay(xIndex, yIndex);
         Color color = _rayTracer.traceRay(ray);
         _imageWriter.writePixel(xIndex, yIndex, color);
+        pixelManager.pixelDone();
     }
 
     /**
@@ -385,6 +477,51 @@ public class Camera implements Cloneable {
         }
 
         _imageWriter.writeToImage(fileName);
+        return this;
+    }
+
+    /**
+     * Render image using multi-threading by creating and running raw threads
+     *
+     * @return the camera object itself
+     */
+    private Camera renderImageRawThreads() {
+        var threads = new LinkedList<Thread>();
+        while (threadsCount-- > 0)
+            threads.add(new Thread(() -> {
+                Pixel pixel;
+                while ((pixel = pixelManager.nextPixel()) != null)
+                    castRay(pixel.col(), pixel.row());
+            }));
+        for (var thread : threads) thread.start();
+        try {
+            for (var thread : threads) thread.join();
+        } catch (InterruptedException ignored) {
+        }
+        return this;
+    }
+
+    /**
+     * Render image using multi-threading by parallel streaming
+     *
+     * @return the camera object itself
+     */
+    private Camera renderImageStream() {
+        IntStream.range(0, _nY).parallel()
+                .forEach(i -> IntStream.range(0, _nX).parallel()
+                        .forEach(j -> castRay(j, i)));
+        return this;
+    }
+
+    /**
+     * Render image without multi-threading
+     *
+     * @return the camera object itself
+     */
+    private Camera renderImageNoThreads() {
+        for (int i = 0; i < _nY; ++i)
+            for (int j = 0; j < _nX; ++j)
+                castRay(j, i);
         return this;
     }
 }

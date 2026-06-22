@@ -8,6 +8,8 @@ import renderer.Camera;
 import renderer.RayTracerType;
 import scene.Scene;
 
+import static parser.XmlPrimitivesParser.parseDouble;
+
 /**
  * Parser responsible for XML camera elements.
  */
@@ -62,15 +64,15 @@ final class XmlCameraParser {
                 XmlPrimitivesParser.getRequiredAttribute(cameraElement, "up")
         );
 
-        double vpWidth = XmlPrimitivesParser.parseDouble(
+        double vpWidth = parseDouble(
                 XmlPrimitivesParser.getRequiredAttribute(cameraElement, "vp-width")
         );
 
-        double vpHeight = XmlPrimitivesParser.parseDouble(
+        double vpHeight = parseDouble(
                 XmlPrimitivesParser.getRequiredAttribute(cameraElement, "vp-height")
         );
 
-        double vpDistance = XmlPrimitivesParser.parseDouble(
+        double vpDistance = parseDouble(
                 XmlPrimitivesParser.getRequiredAttribute(cameraElement, "vp-distance")
         );
 
@@ -82,12 +84,23 @@ final class XmlCameraParser {
                 XmlPrimitivesParser.getRequiredAttribute(cameraElement, "nY")
         );
 
+        int threads = XmlPrimitivesParser.hasAttribute(cameraElement, "threads") ?
+                parseInt(XmlPrimitivesParser.getRequiredAttribute(cameraElement, "threads"))
+                : 0;
+
+        double debugPrint = XmlPrimitivesParser.hasAttribute(cameraElement, "debug-print") ?
+                parseDouble(XmlPrimitivesParser.getRequiredAttribute(cameraElement, "debug-print"))
+                : 0.0;
+
         Camera.Builder builder = Camera.getBuilder()
                 .setRayTracer(scene, RayTracerType.SIMPLE)
                 .setLocation(location)
                 .setVpSize(vpWidth, vpHeight)
                 .setVpDistance(vpDistance)
-                .setResolution(nX, nY);
+                .setResolution(nX, nY)
+                .setMultithreading(threads)
+                .setDebugPrint(debugPrint);
+
 
         applyDirection(builder, cameraElement, up);
 

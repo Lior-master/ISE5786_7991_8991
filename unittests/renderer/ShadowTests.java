@@ -80,8 +80,8 @@ class ShadowTests {
      * @param grid           true if grid is required, false otherwise
      */
     private void renderSceneToImage(String pictName, boolean multiThreading, boolean grid) {
-        // if (multiThreading)
-        // _cameraBuilder.setMultithreading(-1).setDebugPrint(1);
+        if (multiThreading)
+            _cameraBuilder.setMultithreading(-1).setDebugPrint(1);
         var camera = _cameraBuilder.build().renderImage();
         if (grid) camera.printGrid(30, new Color(RED));
         camera.writeToImage(pictName);
