@@ -123,32 +123,30 @@ public class Blackboard {
     }
 
     /**
-     * Generate 2D sample offsets according to the currently set sampling pattern and shape.
+     * Convert the generated 2D sample offsets into world points.
+     * Each sample (x,y) is transformed to center + axisX * x + axisY * y.
      *
-     * @return a list of 2D sample offsets (x, y) in the local sampling plane
+     * @param center the center point of the sampling area
+     * @param axisX  the direction corresponding to the sample x axis
+     * @param axisY  the direction corresponding to the sample y axis
+     * @return list of transformed points in world coordinates
      */
-    public List<Sample2D> generateSamples() {
+    public List<Point> generatePoints(Point center, Vector axisX, Vector axisY) {
+        // Generate points directly according to the current pattern for better efficiency
         return switch (pattern) {
-            case REGULAR -> generateRegularSamples();
-            case RANDOM -> generateRandomSamples();
-            case JITTERED -> generateJitteredSamples();
+            case REGULAR -> generateRegularPoints(center, axisX, axisY);
+            case RANDOM -> generateRandomPoints(center, axisX, axisY);
+            case JITTERED -> generateJitteredPoints(center, axisX, axisY);
         };
     }
 
-    /**
-     * Generate samples arranged in a regular grid covering the sampling area.
-     * The grid is centered at (0,0). If the sampling shape is CIRCLE, samples outside
-     * the circle are discarded.
-     *
-     * @return list of regular grid Sample2D offsets
-     */
-    private List<Sample2D> generateRegularSamples() {
-
+    // Generate regular grid points directly (avoids creating intermediate Sample2D list)
+    private List<Point> generateRegularPoints(Point center, Vector axisX, Vector axisY) {
         if (isZero(width) || isZero(height) || gridSize == 1) {
-            return List.of(new Sample2D(0, 0));
+            return List.of(center);
         }
 
-        List<Sample2D> samples = new LinkedList<>();
+        List<Point> points = new LinkedList<>();
 
         double stepX = width / gridSize;
         double stepY = height / gridSize;
@@ -167,56 +165,24 @@ public class Blackboard {
                     continue;
                 }
 
-                samples.add(new Sample2D(x, y));
+                Point p = center;
+                if (!isZero(x)) p = p.add(axisX.scale(x));
+                if (!isZero(y)) p = p.add(axisY.scale(y));
+
+                points.add(p);
             }
-        }
-
-        return samples;
-    }
-
-    /**
-     * Convert the generated 2D sample offsets into world points.
-     * Each sample (x,y) is transformed to center + axisX * x + axisY * y.
-     *
-     * @param center the center point of the sampling area
-     * @param axisX  the direction corresponding to the sample x axis
-     * @param axisY  the direction corresponding to the sample y axis
-     * @return list of transformed points in world coordinates
-     */
-    public List<Point> generatePoints(Point center, Vector axisX, Vector axisY) {
-        List<Point> points = new LinkedList<>();
-
-        for (Sample2D sample : generateSamples()) {
-            Point point = center;
-
-            if (!isZero(sample.x())) {
-                point = point.add(axisX.scale(sample.x()));
-            }
-
-            if (!isZero(sample.y())) {
-                point = point.add(axisY.scale(sample.y()));
-            }
-
-            points.add(point);
         }
 
         return points;
     }
 
-    /**
-     * Generate samples distributed randomly within the sampling area.
-     * The number of samples generated is gridSize * gridSize.
-     * If the sampling shape is CIRCLE, only samples inside the circle are kept.
-     *
-     * @return list of randomly distributed Sample2D offsets
-     */
-    private List<Sample2D> generateRandomSamples() {
-
+    // Generate random distributed points directly
+    private List<Point> generateRandomPoints(Point center, Vector axisX, Vector axisY) {
         if (isZero(width) || isZero(height) || gridSize == 1) {
-            return List.of(new Sample2D(0, 0));
+            return List.of(center);
         }
 
-        List<Sample2D> samples = new LinkedList<>();
+        List<Point> points = new LinkedList<>();
 
         int samplesAmount = gridSize * gridSize;
 
@@ -235,27 +201,23 @@ public class Blackboard {
                 continue;
             }
 
-            samples.add(new Sample2D(x, y));
+            Point p = center;
+            if (!isZero(x)) p = p.add(axisX.scale(x));
+            if (!isZero(y)) p = p.add(axisY.scale(y));
+
+            points.add(p);
         }
 
-        return samples;
+        return points;
     }
 
-    /**
-     * Generate samples with jittered distribution within the sampling area.
-     * Each grid cell contains one sample randomly placed inside that cell.
-     * The grid is centered around (0,0). If the sampling shape is CIRCLE,
-     * samples outside the circle are discarded.
-     *
-     * @return list of jittered Sample2D offsets
-     */
-    private List<Sample2D> generateJitteredSamples() {
-
+    // Generate jittered points directly (one random sample per grid cell)
+    private List<Point> generateJitteredPoints(Point center, Vector axisX, Vector axisY) {
         if (isZero(width) || isZero(height) || gridSize == 1) {
-            return List.of(new Sample2D(0, 0));
+            return List.of(center);
         }
 
-        List<Sample2D> samples = new LinkedList<>();
+        List<Point> points = new LinkedList<>();
 
         double stepX = width / gridSize;
         double stepY = height / gridSize;
@@ -278,10 +240,18 @@ public class Blackboard {
                     continue;
                 }
 
-                samples.add(new Sample2D(x, y));
+                Point p = center;
+                if (!isZero(x)) p = p.add(axisX.scale(x));
+                if (!isZero(y)) p = p.add(axisY.scale(y));
+
+                points.add(p);
             }
         }
 
-        return samples;
+        return points;
     }
+
+    // ...existing code...
+
+    // ...existing code...
 }

@@ -32,22 +32,11 @@ class BlackboardTests {
     }
 
     /**
-     * Helper method to compare two {@link Sample2D} objects with accuracy.
-     *
-     * @param expected expected sample
-     * @param actual   actual sample
-     */
-    private static void assertSampleEquals(Sample2D expected, Sample2D actual) {
-        assertEquals(expected.x(), actual.x(), DELTA, "Wrong sample x value");
-        assertEquals(expected.y(), actual.y(), DELTA, "Wrong sample y value");
-    }
-
-    /**
-     * Test method for {@link Blackboard#generateSamples()}.
-     * Verifies regular sampling in a rectangular area.
+     * Test method for {@link Blackboard#generatePoints(Point, Vector, Vector)}.
+     * Verifies regular sampling mapped to 3D points in a rectangular area.
      */
     @Test
-    void testGenerateRegularSamplesRectangle() {
+    void testGenerateRegularPointsRectangle() {
         // ============ Equivalence Partitions Tests ==============
 
         // TC01: Regular 2x2 sampling inside a rectangular area
@@ -56,20 +45,20 @@ class BlackboardTests {
                 .setGridSize(2)
                 .setShape(SamplingShape.RECTANGLE)
                 .setPattern(SamplingPattern.REGULAR);
+        // Map 2D samples into 3D points using world axes and center at origin
+        List<Point> points = board.generatePoints(new Point(0, 0, 0), Vector.AXIS_X, Vector.AXIS_Y);
 
-        List<Sample2D> samples = board.generateSamples();
+        assertEquals(4, points.size(), "Wrong number of 3D points");
 
-        assertEquals(4, samples.size(), "Wrong number of samples");
-
-        assertSampleEquals(new Sample2D(-5, -2.5), samples.get(0));
-        assertSampleEquals(new Sample2D(5, -2.5), samples.get(1));
-        assertSampleEquals(new Sample2D(-5, 2.5), samples.get(2));
-        assertSampleEquals(new Sample2D(5, 2.5), samples.get(3));
+        assertEquals(new Point(-5, -2.5, 0), points.get(0), "Wrong first point");
+        assertEquals(new Point(5, -2.5, 0), points.get(1), "Wrong second point");
+        assertEquals(new Point(-5, 2.5, 0), points.get(2), "Wrong third point");
+        assertEquals(new Point(5, 2.5, 0), points.get(3), "Wrong fourth point");
     }
 
     /**
-     * Test method for {@link Blackboard#generateSamples()}.
-     * Verifies that zero-size sampling returns only the center sample.
+     * Test method for {@link Blackboard#generatePoints(Point, Vector, Vector)}.
+     * Verifies that zero-size sampling returns only the center point.
      */
     @Test
     void testGenerateSamplesZeroSize() {
@@ -82,15 +71,16 @@ class BlackboardTests {
                 .setShape(SamplingShape.RECTANGLE)
                 .setPattern(SamplingPattern.REGULAR);
 
-        List<Sample2D> samples = board.generateSamples();
+        Point center = new Point(0, 0, 0);
+        List<Point> points = board.generatePoints(center, Vector.AXIS_X, Vector.AXIS_Y);
 
-        assertEquals(1, samples.size(), "Zero size should create only one sample");
-        assertSampleEquals(new Sample2D(0, 0), samples.get(0));
+        assertEquals(1, points.size(), "Zero size should create only one 3D point");
+        assertEquals(center, points.get(0), "The only point should be the center");
     }
 
     /**
-     * Test method for {@link Blackboard#generateSamples()}.
-     * Verifies that grid size 1 returns only the center sample.
+     * Test method for {@link Blackboard#generatePoints(Point, Vector, Vector)}.
+     * Verifies that grid size 1 returns only the center point.
      */
     @Test
     void testGenerateSamplesGridSizeOne() {
@@ -103,15 +93,16 @@ class BlackboardTests {
                 .setShape(SamplingShape.RECTANGLE)
                 .setPattern(SamplingPattern.REGULAR);
 
-        List<Sample2D> samples = board.generateSamples();
+        Point center = new Point(0, 0, 0);
+        List<Point> points = board.generatePoints(center, Vector.AXIS_X, Vector.AXIS_Y);
 
-        assertEquals(1, samples.size(), "Grid size 1 should create only one sample");
-        assertSampleEquals(new Sample2D(0, 0), samples.get(0));
+        assertEquals(1, points.size(), "Grid size 1 should create only one 3D point");
+        assertEquals(center, points.get(0), "The only point should be the center");
     }
 
     /**
-     * Test method for {@link Blackboard#generateSamples()}.
-     * Verifies that circular sampling removes points outside the circle.
+     * Test method for {@link Blackboard#generatePoints(Point, Vector, Vector)}.
+     * Verifies that circular sampling removes points outside the circle after mapping to 3D.
      */
     @Test
     void testGenerateRegularSamplesCircle() {
@@ -123,19 +114,19 @@ class BlackboardTests {
                 .setGridSize(5)
                 .setShape(SamplingShape.CIRCLE)
                 .setPattern(SamplingPattern.REGULAR);
-
-        List<Sample2D> samples = board.generateSamples();
+        // Map to 3D using center at origin and world axes so that x,y correspond to sample coords
+        List<Point> points = board.generatePoints(new Point(0, 0, 0), Vector.AXIS_X, Vector.AXIS_Y);
 
         // In a 5x5 grid with size 10, only the four corners are outside the circle
-        assertEquals(21, samples.size(), "Wrong number of samples inside the circle");
+        assertEquals(21, points.size(), "Wrong number of points inside the circle");
 
         double radius = 5;
 
-        for (Sample2D sample : samples) {
-            double distanceSquared = sample.x() * sample.x() + sample.y() * sample.y();
+        for (Point p : points) {
+            double distanceSquared = p.distanceSquared(Point.ZERO);
 
             assertTrue(distanceSquared <= radius * radius + DELTA,
-                    "Sample should be inside the circle");
+                    "Point should be inside the circle");
         }
     }
 
@@ -237,32 +228,6 @@ class BlackboardTests {
     }
 
     /**
-     * Test method for not-yet-supported sampling patterns.
-     */
-    @Test
-    void testUnsupportedPatterns() {
-        // =============== Boundary Values Tests ==================
-
-        // TC07: Random sampling is not implemented yet
-        assertThrows(UnsupportedOperationException.class,
-                () -> new Blackboard()
-                        .setSize(10)
-                        .setGridSize(3)
-                        .setPattern(SamplingPattern.RANDOM)
-                        .generateSamples(),
-                "Random sampling should not be implemented yet");
-
-        // TC08: Jittered sampling is not implemented yet
-        assertThrows(UnsupportedOperationException.class,
-                () -> new Blackboard()
-                        .setSize(10)
-                        .setGridSize(3)
-                        .setPattern(SamplingPattern.JITTERED)
-                        .generateSamples(),
-                "Jittered sampling should not be implemented yet");
-    }
-
-    /**
      * Test method for normal valid construction and generation.
      */
     @Test
@@ -275,7 +240,7 @@ class BlackboardTests {
                         .setGridSize(3)
                         .setShape(SamplingShape.RECTANGLE)
                         .setPattern(SamplingPattern.REGULAR)
-                        .generateSamples(),
+                        .generatePoints(new Point(0, 0, 0), Vector.AXIS_X, Vector.AXIS_Y),
                 "Valid board configuration should not throw");
     }
 }
