@@ -28,5 +28,4 @@ public class SoftShadowTest {
     void softShadowTestOn() {
         XmlImageLoader.loadImage("xml/SoftShadowOn.xml");
     }
-
 }

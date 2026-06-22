@@ -21,13 +21,13 @@ import scene.Scene;
 import static java.awt.Color.BLUE;
 import static java.awt.Color.RED;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static parser.XmlImageLoader.loadImage;
 
 /**
  * Benchmark tests for Camera multithreading.
  */
 @SuppressWarnings("java:S109")
-@Disabled("already tested and take to much time")
-class MultiThreadingBenchmarkTest {
+class AccelerationAndThreadingTests {
 
     /**
      * Number of measured runs for each mode
@@ -52,13 +52,14 @@ class MultiThreadingBenchmarkTest {
     /**
      * Default constructor to satisfy JavaDoc generator.
      */
-    MultiThreadingBenchmarkTest() { /* to satisfy JavaDoc generator */ }
+    AccelerationAndThreadingTests() { /* to satisfy JavaDoc generator */ }
 
     /**
      * Quick test: verifies that all multithreading modes render without crashing.
      * This one does not write images.
      */
     @Test
+    @Disabled
     void testMultithreadingModesDoNotCrash() {
         int[] threadModes = {0, 4, 8, 16, 32, -1};
 
@@ -76,6 +77,7 @@ class MultiThreadingBenchmarkTest {
      * Manual benchmark.
      */
     @Test
+    @Disabled
     void benchmarkAverageRenderTime() {
         int[] threadModes = {0, 4, 8, 16, 32, -1};
 
@@ -108,7 +110,7 @@ class MultiThreadingBenchmarkTest {
      * Remove @Disabled to generate a final image.
      */
     @Test
-    @Disabled("not needed image. Its just to generate a final image with the best multithreading mode")
+    @Disabled
     void renderFinalImageWithThreads8() {
         Camera camera = buildCamera(8, BENCHMARK_RESOLUTION, true).renderImage();
 
@@ -121,7 +123,7 @@ class MultiThreadingBenchmarkTest {
      * Remove @Disabled to generate a final image.
      */
     @Test
-    @Disabled("not needed image. Its just to copare the performance of stream mode with threads mode")
+    @Disabled
     void renderFinalImageWithStream() {
         Camera camera = buildCamera(-1, BENCHMARK_RESOLUTION, true).renderImage();
 
@@ -342,5 +344,20 @@ class MultiThreadingBenchmarkTest {
         scene.lights.add(spotLight);
 
         return scene;
+    }
+
+    @Test
+    public void multithreadingTest() {
+        Camera.Builder cameraBuilder = loadImage("xml/SoftShadowOn.xml", true);
+        long start = System.nanoTime();
+        cameraBuilder.setResolution(200, 200).build().renderImage();
+        long end = System.nanoTime();
+
+        System.out.println("Without multithreading time: " + ((start - end) / 1_000_000_000.0) + " seconds");
+
+        start = System.nanoTime();
+        cameraBuilder.setMultithreading(4).build().renderImage();
+        end = System.nanoTime();
+        System.out.println("With 4 threads time: " + ((start - end) / 1_000_000_000.0) + " seconds");
     }
 }

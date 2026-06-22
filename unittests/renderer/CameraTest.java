@@ -22,12 +22,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * <li>{@link Camera#constructRay(int, int)}</li>
  * </ul>
  */
-class CameraTests {
+class CameraTest {
 
     /**
      * Default constructor to satisfy documentation tools.
      */
-    CameraTests() { /* Default constructor to satisfy documentation tools */ }
+    CameraTest() { /* Default constructor to satisfy documentation tools */ }
 
     /**
      * Camera location used in ray construction tests.

@@ -32,30 +32,18 @@ public final class XmlImageLoader {
      *
      * @param xmlPath path to the XML file
      */
-    public static void loadImage(String xmlPath) {
-        Document document = parseDocument(xmlPath);
-        Element root = document.getDocumentElement();
-
-        Scene scene = parseScene(root, xmlPath);
-
-        XmlGeometryParser.parseGeometries(root, scene);
-        XmlLightsParser.parseLights(root, scene);
-
-        Camera camera = XmlCameraParser.parseCamera(root, scene);
-
-        String imageName = getImageName(root, xmlPath);
-
-        camera.renderImage()
-                .writeToImage(imageName);
+    public static Camera.Builder loadImage(String xmlPath) {
+        return loadImage(xmlPath, false);
     }
 
     /**
-     * Loads an XML file, builds the scene and camera, and returns the camera.
+     * Loads an XML file, builds the scene and camera, and optionally renders the image.
      *
-     * @param xmlPath path to the XML file
-     * @return the camera built from the XML file
+     * @param xmlPath     path to the XML file
+     * @param justBuilder if true, only the camera is returned without rendering the image
+     * @return the camera used for rendering
      */
-    public static Camera loadCamera(String xmlPath) {
+    public static Camera.Builder loadImage(String xmlPath, boolean justBuilder) {
         Document document = parseDocument(xmlPath);
         Element root = document.getDocumentElement();
 
@@ -64,8 +52,18 @@ public final class XmlImageLoader {
         XmlGeometryParser.parseGeometries(root, scene);
         XmlLightsParser.parseLights(root, scene);
 
-        return XmlCameraParser.parseCamera(root, scene);
+        Camera.Builder builder = XmlCameraParser.parseCamera(root, scene);
+        if (justBuilder) {
+            return builder;
+        }
+
+        Camera camera = builder.build();
+        String imageName = getImageName(root, xmlPath);
+
+        camera.renderImage().writeToImage(imageName);
+        return builder;
     }
+
 
     /**
      * Parses an XML document from a file path.
@@ -153,17 +151,6 @@ public final class XmlImageLoader {
         scene.setAmbientLight(new AmbientLight(color));
     }
 
-    /**
-     * Gets the output image name.
-     * <p>
-     * If the XML contains {@code image-name}, it is used.
-     * Otherwise, the XML file name is used.
-     * </p>
-     *
-     * @param root    root XML element
-     * @param xmlPath XML file path
-     * @return image name without extension
-     */
     /**
      * Gets the output image name.
      * <p>

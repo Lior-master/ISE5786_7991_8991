@@ -24,12 +24,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * {@link LightSource#getL(Point)} and {@link LightSource#getIntensity(Point)}.
  * </p>
  */
-class SpotLightTests {
+class SpotLightTest {
 
     /**
      * Default constructor to satisfy documentation tools.
      */
-    SpotLightTests() {
+    SpotLightTest() {
         // Default constructor
     }
 

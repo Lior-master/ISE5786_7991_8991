@@ -29,12 +29,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * {@link LightSource#getSamples(Point)}.
  * </p>
  */
-class PointLightTests {
+class PointLightTest {
 
     /**
      * Default constructor to satisfy documentation tools.
      */
-    PointLightTests() {
+    PointLightTest() {
         // Default constructor
     }
 

@@ -43,7 +43,7 @@ final class XmlCameraParser {
      * @param scene parsed scene
      * @return built camera
      */
-    static Camera parseCamera(Element root, Scene scene) {
+    static Camera.Builder parseCamera(Element root, Scene scene) {
         NodeList cameraNodes = root.getElementsByTagName("camera");
 
         if (cameraNodes.getLength() == 0) {
@@ -104,7 +104,7 @@ final class XmlCameraParser {
 
         applyDirection(builder, cameraElement, up);
 
-        return builder.build();
+        return builder;
     }
 
     /**

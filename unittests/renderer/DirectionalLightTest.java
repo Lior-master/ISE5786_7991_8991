@@ -17,12 +17,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * {@link LightSource#getL(Point)} and {@link LightSource#getIntensity(Point)}.
  * </p>
  */
-class DirectionalLightTests {
+class DirectionalLightTest {
 
     /**
      * Default constructor to satisfy documentation tools.
      */
-    DirectionalLightTests() {
+    DirectionalLightTest() {
         // Default constructor
     }
 

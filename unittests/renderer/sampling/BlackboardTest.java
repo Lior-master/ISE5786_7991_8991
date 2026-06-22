@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * of 2D samples into 3D points using a local coordinate system.
  * </p>
  */
-class BlackboardTests {
+class BlackboardTest {
     /**
      * Accuracy for comparing double values.
      */
@@ -27,7 +27,7 @@ class BlackboardTests {
     /**
      * Default constructor to satisfy JavaDoc generator.
      */
-    BlackboardTests() {
+    BlackboardTest() {
         /* to satisfy JavaDoc generator */
     }
 
