@@ -50,6 +50,24 @@ public final class XmlImageLoader {
     }
 
     /**
+     * Loads an XML file, builds the scene and camera, and returns the camera.
+     *
+     * @param xmlPath path to the XML file
+     * @return the camera built from the XML file
+     */
+    public static Camera loadCamera(String xmlPath) {
+        Document document = parseDocument(xmlPath);
+        Element root = document.getDocumentElement();
+
+        Scene scene = parseScene(root, xmlPath);
+
+        XmlGeometryParser.parseGeometries(root, scene);
+        XmlLightsParser.parseLights(root, scene);
+
+        return XmlCameraParser.parseCamera(root, scene);
+    }
+
+    /**
      * Parses an XML document from a file path.
      *
      * @param xmlPath XML file path
