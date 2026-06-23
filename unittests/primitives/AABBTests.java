@@ -2,220 +2,244 @@ package primitives;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Unit tests for class {@link AABB}.
- * Tests verify:
- * <ul>
- * <li>{@link AABB#union(AABB, AABB)} - union of two bounding boxes</li>
- * <li>{@link AABB#intersect(Ray)} - ray-box intersection using slab method</li>
- * <li>{@link AABB#isValid()} - validity check</li>
- * </ul>
+ * Unit tests for {@link AABB}.
+ * <p>
+ * Tests are organized according to EP and BV methodology.
+ * </p>
  */
 class AABBTests {
 
     /**
-     * Default constructor to satisfy JavaDoc generator.
+     * Accuracy for double comparisons.
      */
-    AABBTests() { /* to satisfy JavaDoc generator */ }
-
-    private static final Point MIN = new Point(0, 0, 0);
-    private static final Point MAX = new Point(2, 2, 2);
-
-    // ============ Tests for intersect ============
+    private static final double DELTA = 1e-6;
 
     /**
-     * Test ray passing through the box horizontally.
+     * Default constructor for Javadoc.
+     */
+    AABBTests() { /* to satisfy Javadoc generator */ }
+
+    // ============ Equivalence Partitions Tests ==============
+
+    /**
+     * EP01: Ray crosses the box through the X axis.
      */
     @Test
-    void testRayIntersectsBoxHorizontal() {
-        AABB box = new AABB(MIN, MAX);
+    void testIntersectRayCrossesBoxXAxis() {
+        AABB box = new AABB(new Point(0, 0, 0), new Point(2, 2, 2));
         Ray ray = new Ray(new Point(-1, 1, 1), new Vector(1, 0, 0));
+
         double[] result = box.intersect(ray);
 
-        assertNotNull(result, "Ray should intersect box");
-        assertEquals(2, result.length, "Result should have two values: [tEnter, tExit]");
-        assertEquals(1.0, result[0], 0.001, "tEnter should be 1.0");
-        assertEquals(3.0, result[1], 0.001, "tExit should be 3.0");
+        assertNotNull(result, "Ray should intersect the box");
+        assertEquals(1.0, result[0], DELTA, "Wrong tEnter");
+        assertEquals(3.0, result[1], DELTA, "Wrong tExit");
     }
 
     /**
-     * Test ray starting inside the box.
+     * EP02: Ray crosses the box diagonally.
      */
     @Test
-    void testRayStartingInsideBox() {
-        AABB box = new AABB(MIN, MAX);
+    void testIntersectRayCrossesBoxDiagonal() {
+        AABB box = new AABB(new Point(0, 0, 0), new Point(2, 2, 2));
+        Ray ray = new Ray(new Point(-1, -1, -1), new Vector(1, 1, 1));
+
+        double[] result = box.intersect(ray);
+
+        assertNotNull(result, "Diagonal ray should intersect the box");
+        assertTrue(result[0] > 0, "tEnter should be positive");
+        assertTrue(result[1] > result[0], "tExit should be after tEnter");
+        assertFalse(Double.isNaN(result[0]), "tEnter must not be NaN");
+        assertFalse(Double.isNaN(result[1]), "tExit must not be NaN");
+    }
+
+    /**
+     * EP03: Ray misses the box because it is outside the Y slab.
+     */
+    @Test
+    void testIntersectRayMissesBoxOutsideSlab() {
+        AABB box = new AABB(new Point(0, 0, 0), new Point(2, 2, 2));
+        Ray ray = new Ray(new Point(-1, 3, 1), new Vector(1, 0, 0));
+
+        assertNull(box.intersect(ray), "Ray outside Y slab should miss the box");
+    }
+
+    /**
+     * EP04: Ray starts inside the box and exits it.
+     */
+    @Test
+    void testIntersectRayStartsInsideBox() {
+        AABB box = new AABB(new Point(0, 0, 0), new Point(2, 2, 2));
         Ray ray = new Ray(new Point(1, 1, 1), new Vector(1, 0, 0));
+
         double[] result = box.intersect(ray);
 
-        assertNotNull(result, "Ray starting inside should intersect");
-        assertEquals(2, result.length, "Result should have two values");
-        // Since ray starts inside at t=0, tEnter should be negative infinity or 0 (depending on implementation)
-        // tExit should be when ray exits
-        assertTrue(result[1] > 0, "tExit should be positive");
+        assertNotNull(result, "Ray starting inside should intersect the box");
+        assertTrue(result[0] <= 0, "tEnter should be negative or zero when starting inside");
+        assertEquals(1.0, result[1], DELTA, "Wrong tExit");
     }
 
     /**
-     * Test ray missing the box.
+     * EP05: Union of two separated boxes.
      */
     @Test
-    void testRayMissesBox() {
-        AABB box = new AABB(MIN, MAX);
-        Ray ray = new Ray(new Point(-1, -1, -1), new Vector(1, 0, 0));
-        double[] result = box.intersect(ray);
-
-        assertNull(result, "Ray should not intersect box when passing below");
-    }
-
-    /**
-     * Test ray parallel to box (along one axis) but misses it.
-     */
-    @Test
-    void testRayParallelToBoxAndMisses() {
-        AABB box = new AABB(MIN, MAX);
-        Ray ray = new Ray(new Point(1, -1, 1), new Vector(1, 0, 0));
-        double[] result = box.intersect(ray);
-
-        assertNull(result, "Ray parallel to box but outside should not intersect");
-    }
-
-    /**
-     * Test ray from origin piercing the box diagonally.
-     */
-    @Test
-    void testRayDiagonalIntersect() {
-        AABB box = new AABB(MIN, MAX);
-        Ray ray = new Ray(new Point(-1, -1, -1), new Vector(1, 1, 1).normalize());
-        double[] result = box.intersect(ray);
-
-        assertNotNull(result, "Diagonal ray should intersect box");
-        assertEquals(2, result.length, "Result should have two values");
-        assertTrue(result[0] >= 0 || result[0] < 0, "tEnter should be valid");
-        assertTrue(result[1] > result[0], "tExit should be greater than tEnter");
-    }
-
-    /**
-     * Test ray hitting corner of box.
-     */
-    @Test
-    void testRayHittingCorner() {
-        AABB box = new AABB(MIN, MAX);
-        // Ray aiming at corner (2, 2, 2)
-        Ray ray = new Ray(new Point(0, 0, 0), new Vector(1, 1, 1).normalize());
-        double[] result = box.intersect(ray);
-
-        assertNotNull(result, "Ray hitting corner should intersect");
-    }
-
-    // ============ Tests for union ============
-
-    /**
-     * Test union of two non-overlapping boxes.
-     */
-    @Test
-    void testUnionNonOverlappingBoxes() {
+    void testUnionSeparatedBoxes() {
         AABB box1 = new AABB(new Point(0, 0, 0), new Point(1, 1, 1));
-        AABB box2 = new AABB(new Point(3, 3, 3), new Point(4, 4, 4));
+        AABB box2 = new AABB(new Point(3, -2, 4), new Point(5, 2, 6));
 
         AABB result = AABB.union(box1, box2);
 
         assertNotNull(result, "Union should not be null");
-        assertEquals(0, result.min.x(), 0.001, "Min x should be 0");
-        assertEquals(0, result.min.y(), 0.001, "Min y should be 0");
-        assertEquals(0, result.min.z(), 0.001, "Min z should be 0");
-        assertEquals(4, result.max.x(), 0.001, "Max x should be 4");
-        assertEquals(4, result.max.y(), 0.001, "Max y should be 4");
-        assertEquals(4, result.max.z(), 0.001, "Max z should be 4");
+        assertEquals(0, result.min.x(), DELTA, "Wrong min X");
+        assertEquals(-2, result.min.y(), DELTA, "Wrong min Y");
+        assertEquals(0, result.min.z(), DELTA, "Wrong min Z");
+        assertEquals(5, result.max.x(), DELTA, "Wrong max X");
+        assertEquals(2, result.max.y(), DELTA, "Wrong max Y");
+        assertEquals(6, result.max.z(), DELTA, "Wrong max Z");
     }
 
     /**
-     * Test union of overlapping boxes.
+     * EP06: Union of overlapping boxes.
      */
     @Test
     void testUnionOverlappingBoxes() {
-        AABB box1 = new AABB(new Point(0, 0, 0), new Point(2, 2, 2));
-        AABB box2 = new AABB(new Point(1, 1, 1), new Point(3, 3, 3));
+        AABB box1 = new AABB(new Point(0, 0, 0), new Point(3, 3, 3));
+        AABB box2 = new AABB(new Point(1, -1, 2), new Point(5, 2, 4));
 
         AABB result = AABB.union(box1, box2);
 
-        assertNotNull(result, "Union should not be null");
-        assertEquals(0, result.min.x(), 0.001, "Min x should be 0");
-        assertEquals(3, result.max.x(), 0.001, "Max x should be 3");
+        assertEquals(0, result.min.x(), DELTA, "Wrong min X");
+        assertEquals(-1, result.min.y(), DELTA, "Wrong min Y");
+        assertEquals(0, result.min.z(), DELTA, "Wrong min Z");
+        assertEquals(5, result.max.x(), DELTA, "Wrong max X");
+        assertEquals(3, result.max.y(), DELTA, "Wrong max Y");
+        assertEquals(4, result.max.z(), DELTA, "Wrong max Z");
     }
 
-    /**
-     * Test union with null box (first argument).
-     */
-    @Test
-    void testUnionWithNullFirst() {
-        AABB box2 = new AABB(new Point(1, 1, 1), new Point(3, 3, 3));
-        AABB result = AABB.union(null, box2);
-
-        assertEquals(box2, result, "Union with null should return the non-null box");
-    }
+    // =============== Boundary Values Tests ==================
 
     /**
-     * Test union with null box (second argument).
+     * BV01: Ray is parallel to an axis and inside the corresponding slab.
      */
     @Test
-    void testUnionWithNullSecond() {
-        AABB box1 = new AABB(new Point(0, 0, 0), new Point(2, 2, 2));
-        AABB result = AABB.union(box1, null);
-
-        assertEquals(box1, result, "Union with null should return the non-null box");
-    }
-
-    /**
-     * Test union of identical boxes.
-     */
-    @Test
-    void testUnionIdenticalBoxes() {
-        AABB box1 = new AABB(new Point(0, 0, 0), new Point(2, 2, 2));
-        AABB box2 = new AABB(new Point(0, 0, 0), new Point(2, 2, 2));
-
-        AABB result = AABB.union(box1, box2);
-
-        assertNotNull(result, "Union should not be null");
-        assertEquals(0, result.min.x(), 0.001, "Min x should be 0");
-        assertEquals(2, result.max.x(), 0.001, "Max x should be 2");
-    }
-
-    // ============ Tests for isValid ============
-
-    /**
-     * Test validity of a proper box.
-     */
-    @Test
-    void testValidBox() {
+    void testIntersectRayParallelInsideSlab() {
         AABB box = new AABB(new Point(0, 0, 0), new Point(2, 2, 2));
-        assertTrue(box.isValid(), "Box with min <= max should be valid");
+        Ray ray = new Ray(new Point(-1, 1, 1), new Vector(1, 0, 0));
+
+        double[] result = box.intersect(ray);
+
+        assertNotNull(result, "Parallel ray inside Y/Z slabs should intersect");
+        assertEquals(1.0, result[0], DELTA, "Wrong tEnter");
+        assertEquals(3.0, result[1], DELTA, "Wrong tExit");
     }
 
     /**
-     * Test invalidity of inverted box.
+     * BV02: Ray is parallel to an axis and outside the corresponding slab.
      */
     @Test
-    void testInvalidBoxInvertedX() {
-        AABB box = new AABB(new Point(2, 0, 0), new Point(0, 2, 2));
-        assertFalse(box.isValid(), "Box with inverted X should be invalid");
+    void testIntersectRayParallelOutsideSlab() {
+        AABB box = new AABB(new Point(0, 0, 0), new Point(2, 2, 2));
+        Ray ray = new Ray(new Point(-1, 3, 1), new Vector(1, 0, 0));
+
+        assertNull(box.intersect(ray), "Parallel ray outside slab should miss");
     }
 
     /**
-     * Test invalidity of inverted box on Y.
+     * BV03: Ray starts exactly on the box boundary and goes inside.
      */
     @Test
-    void testInvalidBoxInvertedY() {
-        AABB box = new AABB(new Point(0, 2, 0), new Point(2, 0, 2));
-        assertFalse(box.isValid(), "Box with inverted Y should be invalid");
+    void testIntersectRayStartsOnBoundaryGoesInside() {
+        AABB box = new AABB(new Point(0, 0, 0), new Point(2, 2, 2));
+        Ray ray = new Ray(new Point(0, 1, 1), new Vector(1, 0, 0));
+
+        double[] result = box.intersect(ray);
+
+        assertNotNull(result, "Ray starting on boundary should intersect");
+        assertEquals(0.0, result[0], DELTA, "tEnter should be zero on boundary");
+        assertEquals(2.0, result[1], DELTA, "Wrong tExit");
     }
 
     /**
-     * Test validity of box with min == max (point).
+     * BV04: Box is completely behind the ray origin.
      */
     @Test
-    void testValidBoxMinEqualsMax() {
+    void testIntersectBoxBehindRay() {
+        AABB box = new AABB(new Point(0, 0, 0), new Point(2, 2, 2));
+        Ray ray = new Ray(new Point(5, 1, 1), new Vector(1, 0, 0));
+
+        assertNull(box.intersect(ray), "Box behind ray origin should not count as intersection");
+    }
+
+    /**
+     * BV05: Flat AABB with zero size on Z axis is hit by a perpendicular ray.
+     */
+    @Test
+    void testIntersectFlatBoxHit() {
+        AABB box = new AABB(new Point(0, 0, 0), new Point(2, 2, 0));
+        Ray ray = new Ray(new Point(1, 1, -1), new Vector(0, 0, 1));
+
+        double[] result = box.intersect(ray);
+
+        assertNotNull(result, "Flat box should be intersectable");
+        assertEquals(1.0, result[0], DELTA, "Wrong tEnter for flat box");
+        assertEquals(1.0, result[1], DELTA, "Wrong tExit for flat box");
+    }
+
+    /**
+     * BV06: Flat AABB is missed by a ray outside its X/Y bounds.
+     */
+    @Test
+    void testIntersectFlatBoxMiss() {
+        AABB box = new AABB(new Point(0, 0, 0), new Point(2, 2, 0));
+        Ray ray = new Ray(new Point(3, 1, -1), new Vector(0, 0, 1));
+
+        assertNull(box.intersect(ray), "Ray outside flat box bounds should miss");
+    }
+
+    /**
+     * BV07: Union with null first argument.
+     */
+    @Test
+    void testUnionNullFirstArgument() {
+        AABB box = new AABB(new Point(1, 1, 1), new Point(2, 2, 2));
+
+        assertEquals(box, AABB.union(null, box), "Union with null should return other box");
+    }
+
+    /**
+     * BV08: Union with null second argument.
+     */
+    @Test
+    void testUnionNullSecondArgument() {
+        AABB box = new AABB(new Point(1, 1, 1), new Point(2, 2, 2));
+
+        assertEquals(box, AABB.union(box, null), "Union with null should return other box");
+    }
+
+    /**
+     * BV09: Degenerate AABB where min equals max.
+     */
+    @Test
+    void testValidDegenerateBox() {
         AABB box = new AABB(new Point(1, 1, 1), new Point(1, 1, 1));
-        assertTrue(box.isValid(), "Box where min == max should be valid (degenerate but valid)");
+
+        assertTrue(box.isValid(), "A point-sized AABB should be valid");
+    }
+
+    /**
+     * BV10: Invalid AABB with inverted X range.
+     */
+    @Test
+    void testInvalidInvertedBox() {
+        AABB box = new AABB(new Point(2, 0, 0), new Point(0, 2, 2));
+
+        assertFalse(box.isValid(), "AABB with min greater than max should be invalid");
     }
 }

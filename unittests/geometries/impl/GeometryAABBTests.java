@@ -3,210 +3,210 @@ package geometries.impl;
 import org.junit.jupiter.api.Test;
 import primitives.AABB;
 import primitives.Point;
+import primitives.Ray;
+import primitives.Vector;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Unit tests for AABB implementations in geometry classes.
- * Tests verify that each finite geometry correctly computes its bounding box.
+ * Unit tests for geometry AABB computation.
+ * <p>
+ * Tests are organized according to EP and BV methodology.
+ * </p>
  */
 class GeometryAABBTests {
 
     /**
-     * Default constructor to satisfy JavaDoc generator.
+     * Accuracy for double comparisons.
      */
-    GeometryAABBTests() { /* to satisfy JavaDoc generator */ }
-
-    // ============ Tests for Sphere AABB ============
+    private static final double DELTA = 1e-6;
 
     /**
-     * Test sphere AABB at origin.
+     * Default constructor for Javadoc.
+     */
+    GeometryAABBTests() { /* to satisfy Javadoc generator */ }
+
+    /**
+     * Assert AABB coordinates.
+     */
+    private static void assertAABB(AABB box, Point min, Point max, String message) {
+        assertNotNull(box, message + " AABB should not be null");
+        assertEquals(min.x(), box.min.x(), DELTA, message + " wrong min X");
+        assertEquals(min.y(), box.min.y(), DELTA, message + " wrong min Y");
+        assertEquals(min.z(), box.min.z(), DELTA, message + " wrong min Z");
+        assertEquals(max.x(), box.max.x(), DELTA, message + " wrong max X");
+        assertEquals(max.y(), box.max.y(), DELTA, message + " wrong max Y");
+        assertEquals(max.z(), box.max.z(), DELTA, message + " wrong max Z");
+        assertTrue(box.isValid(), message + " AABB should be valid");
+    }
+
+    // ============ Equivalence Partitions Tests ==============
+
+    /**
+     * EP01: Sphere centered at origin.
      */
     @Test
     void testSphereAABBAtOrigin() {
         Sphere sphere = new Sphere(new Point(0, 0, 0), 2.0);
-        AABB aabb = sphere.getAABB();
 
-        assertNotNull(aabb, "Sphere should have a bounding box");
-        assertEquals(-2.0, aabb.min.x(), 0.001, "Min x should be -2.0");
-        assertEquals(-2.0, aabb.min.y(), 0.001, "Min y should be -2.0");
-        assertEquals(-2.0, aabb.min.z(), 0.001, "Min z should be -2.0");
-        assertEquals(2.0, aabb.max.x(), 0.001, "Max x should be 2.0");
-        assertEquals(2.0, aabb.max.y(), 0.001, "Max y should be 2.0");
-        assertEquals(2.0, aabb.max.z(), 0.001, "Max z should be 2.0");
+        assertAABB(
+                sphere.getAABB(),
+                new Point(-2, -2, -2),
+                new Point(2, 2, 2),
+                "Sphere at origin"
+        );
     }
 
     /**
-     * Test sphere AABB with arbitrary center.
+     * EP02: Sphere with arbitrary center.
      */
     @Test
     void testSphereAABBArbitraryCenter() {
-        Sphere sphere = new Sphere(new Point(1, 2, 3), 1.5);
-        AABB aabb = sphere.getAABB();
+        Sphere sphere = new Sphere(new Point(1, -2, 3), 1.5);
 
-        assertNotNull(aabb, "Sphere should have a bounding box");
-        assertEquals(-0.5, aabb.min.x(), 0.001, "Min x should be 1-1.5");
-        assertEquals(0.5, aabb.min.y(), 0.001, "Min y should be 2-1.5");
-        assertEquals(1.5, aabb.min.z(), 0.001, "Min z should be 3-1.5");
-        assertEquals(2.5, aabb.max.x(), 0.001, "Max x should be 1+1.5");
-        assertEquals(3.5, aabb.max.y(), 0.001, "Max y should be 2+1.5");
-        assertEquals(4.5, aabb.max.z(), 0.001, "Max z should be 3+1.5");
+        assertAABB(
+                sphere.getAABB(),
+                new Point(-0.5, -3.5, 1.5),
+                new Point(2.5, -0.5, 4.5),
+                "Arbitrary sphere"
+        );
     }
 
     /**
-     * Test sphere AABB is valid.
+     * EP03: Triangle with arbitrary non-axis-aligned vertices.
      */
     @Test
-    void testSphereAABBIsValid() {
-        Sphere sphere = new Sphere(new Point(1, 1, 1), 1.0);
-        AABB aabb = sphere.getAABB();
-
-        assertTrue(aabb.isValid(), "Sphere AABB should always be valid");
-    }
-
-    // ============ Tests for Triangle AABB ============
-
-    /**
-     * Test triangle AABB with axis-aligned vertices.
-     */
-    @Test
-    void testTriangleAABBAxisAligned() {
+    void testTriangleAABBArbitraryVertices() {
         Triangle triangle = new Triangle(
-            new Point(0, 0, 0),
-            new Point(1, 0, 0),
-            new Point(0, 1, 0)
+                new Point(-1, 2, 3),
+                new Point(4, -2, 1),
+                new Point(2, 3, -4)
         );
-        AABB aabb = triangle.getAABB();
 
-        assertNotNull(aabb, "Triangle should have a bounding box");
-        assertEquals(0, aabb.min.x(), 0.001, "Min x should be 0");
-        assertEquals(0, aabb.min.y(), 0.001, "Min y should be 0");
-        assertEquals(0, aabb.min.z(), 0.001, "Min z should be 0");
-        assertEquals(1, aabb.max.x(), 0.001, "Max x should be 1");
-        assertEquals(1, aabb.max.y(), 0.001, "Max y should be 1");
-        assertEquals(0, aabb.max.z(), 0.001, "Max z should be 0");
+        assertAABB(
+                triangle.getAABB(),
+                new Point(-1, -2, -4),
+                new Point(4, 3, 3),
+                "Arbitrary triangle"
+        );
     }
 
     /**
-     * Test triangle AABB with arbitrary vertices.
+     * EP04: Polygon with arbitrary vertices.
      */
     @Test
-    void testTriangleAABBArbitrary() {
-        Triangle triangle = new Triangle(
-            new Point(-1, 2, 3),
-            new Point(4, -2, 1),
-            new Point(2, 3, -4)
-        );
-        AABB aabb = triangle.getAABB();
-
-        assertNotNull(aabb, "Triangle should have a bounding box");
-        assertEquals(-1, aabb.min.x(), 0.001, "Min x should be -1");
-        assertEquals(-2, aabb.min.y(), 0.001, "Min y should be -2");
-        assertEquals(-4, aabb.min.z(), 0.001, "Min z should be -4");
-        assertEquals(4, aabb.max.x(), 0.001, "Max x should be 4");
-        assertEquals(3, aabb.max.y(), 0.001, "Max y should be 3");
-        assertEquals(3, aabb.max.z(), 0.001, "Max z should be 3");
-    }
-
-    /**
-     * Test triangle AABB is valid.
-     */
-    @Test
-    void testTriangleAABBIsValid() {
-        Triangle triangle = new Triangle(
-            new Point(0, 0, 0),
-            new Point(1, 0, 0),
-            new Point(0, 1, 0)
-        );
-        AABB aabb = triangle.getAABB();
-
-        assertTrue(aabb.isValid(), "Triangle AABB should always be valid");
-    }
-
-    // ============ Tests for Polygon AABB ============
-
-    /**
-     * Test square polygon AABB.
-     */
-    @Test
-    void testPolygonAABBSquare() {
+    void testPolygonAABBArbitraryVertices() {
         Polygon polygon = new Polygon(
-            new Point(0, 0, 0),
-            new Point(2, 0, 0),
-            new Point(2, 2, 0),
-            new Point(0, 2, 0)
+                new Point(1, 1, 0),
+                new Point(4, 1, 0),
+                new Point(5, 3, 0),
+                new Point(2, 4, 0)
         );
-        AABB aabb = polygon.getAABB();
 
-        assertNotNull(aabb, "Polygon should have a bounding box");
-        assertEquals(0, aabb.min.x(), 0.001, "Min x should be 0");
-        assertEquals(0, aabb.min.y(), 0.001, "Min y should be 0");
-        assertEquals(0, aabb.min.z(), 0.001, "Min z should be 0");
-        assertEquals(2, aabb.max.x(), 0.001, "Max x should be 2");
-        assertEquals(2, aabb.max.y(), 0.001, "Max y should be 2");
-        assertEquals(0, aabb.max.z(), 0.001, "Max z should be 0");
+        assertAABB(
+                polygon.getAABB(),
+                new Point(1, 1, 0),
+                new Point(5, 4, 0),
+                "Arbitrary polygon"
+        );
     }
 
     /**
-     * Test polygon AABB with arbitrary vertices.
-     */
-    @Test
-    void testPolygonAABBArbitrary() {
-        Polygon polygon = new Polygon(
-            new Point(1, 1, 0),
-            new Point(3, 1, 0),
-            new Point(4, 3, 0),
-            new Point(2, 4, 0)
-        );
-        AABB aabb = polygon.getAABB();
-
-        assertNotNull(aabb, "Polygon should have a bounding box");
-        assertEquals(1, aabb.min.x(), 0.001, "Min x should be 1");
-        assertEquals(1, aabb.min.y(), 0.001, "Min y should be 1");
-        assertEquals(0, aabb.min.z(), 0.001, "Min z should be 0");
-        assertEquals(4, aabb.max.x(), 0.001, "Max x should be 4");
-        assertEquals(4, aabb.max.y(), 0.001, "Max y should be 4");
-        assertEquals(0, aabb.max.z(), 0.001, "Max z should be 0");
-    }
-
-    /**
-     * Test polygon AABB is valid.
-     */
-    @Test
-    void testPolygonAABBIsValid() {
-        Polygon polygon = new Polygon(
-            new Point(0, 0, 0),
-            new Point(1, 0, 0),
-            new Point(1, 1, 0)
-        );
-        AABB aabb = polygon.getAABB();
-
-        assertTrue(aabb.isValid(), "Polygon AABB should always be valid");
-    }
-
-    // ============ Tests for Plane (infinite geometry) ============
-
-    /**
-     * Test that Plane returns null AABB (infinite geometry).
+     * EP05: Plane is infinite, therefore it has no finite AABB.
      */
     @Test
     void testPlaneAABBIsNull() {
-        Plane plane = new Plane(new Point(0, 0, 0), new Point(1, 0, 0), new Point(0, 1, 0));
-        AABB aabb = plane.getAABB();
+        Plane plane = new Plane(new Point(0, 0, 0), new Vector(0, 0, 1));
 
-        assertNull(aabb, "Plane is infinite and should return null AABB");
+        assertNull(plane.getAABB(), "Plane is infinite and should not have finite AABB");
     }
 
-    // ============ Tests for Tube (infinite geometry) ============
-
     /**
-     * Test that Tube returns null AABB (infinite geometry).
+     * EP06: Tube is infinite, therefore it has no finite AABB.
      */
     @Test
     void testTubeAABBIsNull() {
-        Tube tube = new Tube(1.0, new primitives.Ray(new Point(0, 0, 0), new primitives.Vector(0, 0, 1)));
-        AABB aabb = tube.getAABB();
+        Tube tube = new Tube(1.0, new Ray(new Point(0, 0, 0), new Vector(0, 0, 1)));
 
-        assertNull(aabb, "Tube is infinite and should return null AABB");
+        assertNull(tube.getAABB(), "Tube is infinite and should not have finite AABB");
+    }
+
+    // =============== Boundary Values Tests ==================
+
+    /**
+     * BV01: Triangle lies entirely on a flat Z plane.
+     */
+    @Test
+    void testFlatTriangleAABB() {
+        Triangle triangle = new Triangle(
+                new Point(0, 0, 5),
+                new Point(2, 0, 5),
+                new Point(0, 3, 5)
+        );
+
+        assertAABB(
+                triangle.getAABB(),
+                new Point(0, 0, 5),
+                new Point(2, 3, 5),
+                "Flat triangle"
+        );
+    }
+
+    /**
+     * BV02: Polygon lies entirely on a flat Z plane.
+     */
+    @Test
+    void testFlatPolygonAABB() {
+        Polygon polygon = new Polygon(
+                new Point(-2, -1, 7),
+                new Point(2, -1, 7),
+                new Point(2, 1, 7),
+                new Point(-2, 1, 7)
+        );
+
+        assertAABB(
+                polygon.getAABB(),
+                new Point(-2, -1, 7),
+                new Point(2, 1, 7),
+                "Flat polygon"
+        );
+    }
+
+    /**
+     * BV03: Geometry touches the coordinate origin.
+     */
+    @Test
+    void testSphereTouchingOriginAABB() {
+        Sphere sphere = new Sphere(new Point(1, 0, 0), 1.0);
+
+        assertAABB(
+                sphere.getAABB(),
+                new Point(0, -1, -1),
+                new Point(2, 1, 1),
+                "Sphere touching origin"
+        );
+    }
+
+    /**
+     * BV04: Polygon with negative and positive coordinates.
+     */
+    @Test
+    void testPolygonAABBMixedCoordinates() {
+        Polygon polygon = new Polygon(
+                new Point(-3, -2, 1),
+                new Point(2, -2, 1),
+                new Point(2, 4, 1),
+                new Point(-3, 4, 1)
+        );
+
+        assertAABB(
+                polygon.getAABB(),
+                new Point(-3, -2, 1),
+                new Point(2, 4, 1),
+                "Polygon with mixed coordinates"
+        );
     }
 }

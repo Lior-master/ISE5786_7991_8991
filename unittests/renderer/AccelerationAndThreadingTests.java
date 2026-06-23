@@ -7,7 +7,6 @@ import geometries.impl.Sphere;
 import geometries.impl.Triangle;
 import lighting.AmbientLight;
 import lighting.SpotLight;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import primitives.Color;
 import primitives.Material;
@@ -59,7 +58,6 @@ class AccelerationAndThreadingTests {
      * This one does not write images.
      */
     @Test
-    @Disabled
     void testMultithreadingModesDoNotCrash() {
         int[] threadModes = {0, 4, 8, 16, 32, -1};
 
@@ -77,7 +75,6 @@ class AccelerationAndThreadingTests {
      * Manual benchmark.
      */
     @Test
-    @Disabled
     void benchmarkAverageRenderTime() {
         int[] threadModes = {0, 4, 8, 16, 32, -1};
 
@@ -110,7 +107,6 @@ class AccelerationAndThreadingTests {
      * Remove @Disabled to generate a final image.
      */
     @Test
-    @Disabled
     void renderFinalImageWithThreads8() {
         Camera camera = buildCamera(8, BENCHMARK_RESOLUTION, true).renderImage();
 
@@ -123,7 +119,6 @@ class AccelerationAndThreadingTests {
      * Remove @Disabled to generate a final image.
      */
     @Test
-    @Disabled
     void renderFinalImageWithStream() {
         Camera camera = buildCamera(-1, BENCHMARK_RESOLUTION, true).renderImage();
 
@@ -349,6 +344,7 @@ class AccelerationAndThreadingTests {
     @Test
     public void multithreadingTest() {
         Camera.Builder cameraBuilder = loadImage("xml/SoftShadowOn.xml", true);
+
         long start = System.nanoTime();
         cameraBuilder.setResolution(200, 200).build().renderImage();
         long end = System.nanoTime();

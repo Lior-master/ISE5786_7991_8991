@@ -1,9 +1,14 @@
 package geometries.impl;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import geometries.api.Intersectable;
-import geometries.api.Geometry;
 import primitives.AABB;
 import primitives.Point;
 import primitives.Ray;
@@ -12,7 +17,7 @@ import static primitives.Util.alignZero;
 
 /**
  * Regular grid acceleration structure.
- *
+ * <p>
  * Read-only after construction and safe for multithreaded traversal.
  */
 public final class RegularGrid {
@@ -23,6 +28,15 @@ public final class RegularGrid {
         public final int maxResolution;
 
         public Config(double density, int minResolution, int maxResolution) {
+            if (density <= 0) {
+                throw new IllegalArgumentException("density must be positive");
+            }
+            if (minResolution > maxResolution) {
+                throw new IllegalArgumentException("minResolution must be <= maxResolution");
+            }
+            if (minResolution <= 0) {
+                throw new IllegalArgumentException("minResolution must be > 0");
+            }
             this.density = density;
             this.minResolution = minResolution;
             this.maxResolution = maxResolution;
@@ -110,7 +124,9 @@ public final class RegularGrid {
         }
     }
 
-    private static int clamp(int v, int a, int b) { return Math.max(a, Math.min(b, v)); }
+    private static int clamp(int v, int a, int b) {
+        return Math.max(a, Math.min(b, v));
+    }
 
     /**
      * Returns intersections of ray with geometries using the grid traversal.
@@ -182,15 +198,23 @@ public final class RegularGrid {
             // advance to next voxel
             if (tMaxX < tMaxY) {
                 if (tMaxX < tMaxZ) {
-                    ix += stepX; tStart = tMaxX; tMaxX += tDeltaX;
+                    ix += stepX;
+                    tStart = tMaxX;
+                    tMaxX += tDeltaX;
                 } else {
-                    iz += stepZ; tStart = tMaxZ; tMaxZ += tDeltaZ;
+                    iz += stepZ;
+                    tStart = tMaxZ;
+                    tMaxZ += tDeltaZ;
                 }
             } else {
                 if (tMaxY < tMaxZ) {
-                    iy += stepY; tStart = tMaxY; tMaxY += tDeltaY;
+                    iy += stepY;
+                    tStart = tMaxY;
+                    tMaxY += tDeltaY;
                 } else {
-                    iz += stepZ; tStart = tMaxZ; tMaxZ += tDeltaZ;
+                    iz += stepZ;
+                    tStart = tMaxZ;
+                    tMaxZ += tDeltaZ;
                 }
             }
         }
@@ -202,6 +226,9 @@ public final class RegularGrid {
         final Intersectable geometry;
         final AABB aabb;
 
-        Pair(Intersectable g, AABB a) { geometry = g; aabb = a; }
+        Pair(Intersectable g, AABB a) {
+            geometry = g;
+            aabb = a;
+        }
     }
 }

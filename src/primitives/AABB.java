@@ -32,12 +32,7 @@ public final class AABB {
         return min.x() <= max.x() && min.y() <= max.y() && min.z() <= max.z();
     }
 
-    /**
-     * Ray-box intersection using the slab method.
-     * Returns {tEnter, tExit} or null if no intersection.
-     */
-    public double[] intersect(primitives.Ray ray) {
-        // slab method
+    public double[] intersect(Ray ray) {
         double tMin = Double.NEGATIVE_INFINITY;
         double tMax = Double.POSITIVE_INFINITY;
 
@@ -49,19 +44,42 @@ public final class AABB {
         for (int i = 0; i < 3; ++i) {
             double origin = ro[i];
             double dir = rd[i];
-            double inv = 1.0 / dir;
 
             if (primitives.Util.isZero(dir)) {
-                // Ray is parallel to slab. No hit if origin not within slab
-                if (origin < bMin[i] || origin > bMax[i]) return null;
+                // Ray is parallel to this slab.
+                // If origin is outside the slab, there is no intersection.
+                if (origin < bMin[i] || origin > bMax[i]) {
+                    return null;
+                }
             } else {
+                double inv = 1.0 / dir;
+
                 double t1 = (bMin[i] - origin) * inv;
                 double t2 = (bMax[i] - origin) * inv;
-                if (t1 > t2) { double tmp = t1; t1 = t2; t2 = tmp; }
-                if (t1 > tMin) tMin = t1;
-                if (t2 < tMax) tMax = t2;
-                if (tMin > tMax) return null;
+
+                if (t1 > t2) {
+                    double temp = t1;
+                    t1 = t2;
+                    t2 = temp;
+                }
+
+                if (t1 > tMin) {
+                    tMin = t1;
+                }
+
+                if (t2 < tMax) {
+                    tMax = t2;
+                }
+
+                if (tMin > tMax) {
+                    return null;
+                }
             }
+        }
+
+        // The whole box is behind the ray origin.
+        if (tMax <= 0) {
+            return null;
         }
 
         return new double[]{tMin, tMax};
