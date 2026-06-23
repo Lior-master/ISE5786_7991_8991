@@ -53,4 +53,6 @@ public class Cylinder extends Tube {
         }
         return super.getNormal(point);
     }
+
+    // Cylinder AABB omitted: treat as infinite (will be tested without grid assignment)
 }

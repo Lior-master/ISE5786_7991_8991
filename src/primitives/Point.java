@@ -42,6 +42,15 @@ public class Point {
         this._xyz = _xyz;
     }
 
+    /** Return X coordinate */
+    public double x() { return _xyz._d1(); }
+
+    /** Return Y coordinate */
+    public double y() { return _xyz._d2(); }
+
+    /** Return Z coordinate */
+    public double z() { return _xyz._d3(); }
+
     /**
      * Subtracts a point from this point.
      * The result is the vector from {@code other} to {@code this}.

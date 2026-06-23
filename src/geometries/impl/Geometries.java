@@ -21,6 +21,7 @@ public class Geometries extends Intersectable {
      * Internal list of all intersectable geometries in the collection.
      */
     private final List<Intersectable> geometries = new ArrayList<>();
+    private RegularGrid grid = null;
 
     /**
      * Constructs a geometry collection and optionally initializes it
@@ -44,10 +45,29 @@ public class Geometries extends Intersectable {
 
     }
 
+    /**
+     * Returns an unmodifiable view of the contained geometries.
+     */
+    public List<Intersectable> getList() { return List.copyOf(geometries); }
+
+    /**
+     * Builds a regular grid acceleration structure with the provided config.
+     * If cfg is null the grid is disabled.
+     */
+    public void enableRegularGrid(RegularGrid.Config cfg) {
+        if (cfg == null) { grid = null; return; }
+        grid = new RegularGrid(geometries, cfg);
+    }
+
+    public void disableRegularGrid() { grid = null; }
+
     @Override
     protected List<Intersection> calcIntersectionsHelper(Ray ray) {
-        List<Intersection> intersections = null;
+        if (grid != null) {
+            return grid.calcIntersections(ray);
+        }
 
+        List<Intersection> intersections = null;
         for (Intersectable geometry : geometries) {
             var geoIntersections = geometry.calcIntersections(ray);
 

@@ -76,4 +76,16 @@ public abstract class Geometry extends Intersectable {
      * @return the normalized normal {@link Vector} at the given point
      */
     public abstract Vector getNormal(Point point);
+
+    /**
+     * Returns the axis-aligned bounding box for this geometry, or {@code null}
+     * if the geometry is infinite or has no meaningful AABB.
+     * <p>
+     * Default implementation returns {@code null}. Concrete finite geometries
+     * should override this method and provide their AABB.
+     */
+    public primitives.AABB getAABB() {
+        return null;
+    }
+
 }

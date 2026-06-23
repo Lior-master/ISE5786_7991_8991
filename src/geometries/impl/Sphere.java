@@ -5,6 +5,7 @@ import java.util.List;
 import primitives.Point;
 import primitives.Ray;
 import primitives.Vector;
+import static geometries.api.Intersectable.Intersection;
 
 import static primitives.Util.alignZero;
 
@@ -37,6 +38,12 @@ public class Sphere extends RadialGeometry {
         return point.subtract(_center).normalize();
     }
 
+    @Override
+    public primitives.AABB getAABB() {
+        Point min = new Point(_center.x() - _radius, _center.y() - _radius, _center.z() - _radius);
+        Point max = new Point(_center.x() + _radius, _center.y() + _radius, _center.z() + _radius);
+        return new primitives.AABB(min, max);
+    }
     @Override
     protected List<Intersection> calcIntersectionsHelper(Ray ray) {
         Point p0 = ray.origin();

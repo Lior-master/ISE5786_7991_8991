@@ -8,6 +8,7 @@ import primitives.Vector;
 
 import static primitives.Util.alignZero;
 import static primitives.Util.isZero;
+import static geometries.api.Intersectable.Intersection;
 
 /**
  * Represents an infinite tube in 3D space.
