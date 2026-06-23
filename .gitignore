@@ -3,6 +3,10 @@ out/
 !**/src/main/**/out/
 !**/src/test/**/out/
 .kotlin
+REGULAR_GRID_INTEGRATION.md
+TESTING_REGULAR_GRID.md
+.idea/copilotDiffState.xml
+.idea/copilot.data.migration.ask2agent.xml
 
 ### Eclipse ###
 .apt_generated
