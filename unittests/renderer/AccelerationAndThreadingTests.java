@@ -362,4 +362,74 @@ class AccelerationAndThreadingTests {
         System.out.println("With 4 threads time: " + ((end - start) / 1_000_000_000.0) + " seconds");
     }
 
+    /**
+     * MP2 final benchmark scene.
+     * <p>
+     * Renders the same rich scene 3 times with Regular Grid enabled
+     * and 3 times with Regular Grid disabled, then prints average times.
+     * </p>
+     */
+    @Test
+    public void MP2_final_scene_average() {
+        final String gridOnXml = "xml/MP2_RichScene_RegularGridOn.xml";
+        final String gridOffXml = "xml/MP2_RichScene_RegularGridOff.xml";
+        final int runs = 3;
+
+        long avgGridOn = renderAverageTime(gridOnXml, runs);
+        long avgGridOff = renderAverageTime(gridOffXml, runs);
+
+        System.out.println();
+        System.out.println("========== MP2 FINAL SCENE BENCHMARK ==========");
+        System.out.println("Regular Grid ON  average:  " + avgGridOn + " ms");
+        System.out.println("Regular Grid OFF average:  " + avgGridOff + " ms");
+
+        if (avgGridOn > 0) {
+            double speedup = (double) avgGridOff / avgGridOn;
+            System.out.printf("Speedup: %.2fx%n", speedup);
+        }
+
+        System.out.println("================================================");
+    }
+
+    /**
+     * Renders the XML scene several times and returns the average render time.
+     *
+     * @param xmlPath XML scene path
+     * @param runs    number of measured runs
+     * @return average render time in milliseconds
+     */
+    private long renderAverageTime(String xmlPath, int runs) {
+        long totalTime = 0;
+
+        for (int i = 1; i <= runs; i++) {
+            long time = renderOnce(xmlPath);
+
+            totalTime += time;
+
+            System.out.println(xmlPath + " | run " + i + "/" + runs + ": " + time + " ms");
+        }
+
+        return totalTime / runs;
+    }
+
+    /**
+     * Loads, builds, renders and writes one XML scene.
+     *
+     * @param xmlPath XML scene path
+     * @return render time in milliseconds
+     */
+    private long renderOnce(String xmlPath) {
+        Camera.Builder cameraBuilder = loadImage(xmlPath, true);
+
+        Camera camera = cameraBuilder.build();
+
+        long start = System.nanoTime();
+
+        camera.renderImage();
+
+        long end = System.nanoTime();
+
+
+        return (end - start) / 1_000_000;
+    }
 }
