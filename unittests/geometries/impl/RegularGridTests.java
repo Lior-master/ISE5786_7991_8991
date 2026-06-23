@@ -10,6 +10,7 @@ import primitives.Point;
 import primitives.Ray;
 import primitives.Vector;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -382,7 +383,7 @@ class RegularGridTests {
         assertEquals(2, intersections.size(),
                 "A sphere spread across many voxels must still produce exactly 2 intersections");
     }
-    
+
     /**
      * BV09: Very low density still produces correct results.
      */
@@ -451,5 +452,53 @@ class RegularGridTests {
                 () -> new RegularGrid.Config(1.0, 10, 5),
                 "Max resolution must be greater than or equal to min resolution"
         );
+    }
+
+    /**
+     * BV: Scene AABB is flat on Z axis.
+     * RegularGrid must handle zero-size scene dimensions without division by zero.
+     */
+    @Test
+    void testCompletelyFlatSceneOnZAxis() {
+        Geometries baseline = new Geometries(
+                new Triangle(
+                        new Point(-5, -5, 0),
+                        new Point(5, -5, 0),
+                        new Point(0, 5, 0)
+                ),
+                new Triangle(
+                        new Point(-4, -4, 0),
+                        new Point(4, -4, 0),
+                        new Point(0, 4, 0)
+                )
+        );
+
+        Geometries grid = new Geometries(
+                new Triangle(
+                        new Point(-5, -5, 0),
+                        new Point(5, -5, 0),
+                        new Point(0, 5, 0)
+                ),
+                new Triangle(
+                        new Point(-4, -4, 0),
+                        new Point(4, -4, 0),
+                        new Point(0, 4, 0)
+                )
+        );
+
+        assertDoesNotThrow(
+                () -> grid.enableRegularGrid(new RegularGrid.Config(2.0, 2, 50)),
+                "RegularGrid construction should handle flat scene AABB"
+        );
+
+        Ray ray = new Ray(new Point(0, 0, -10), new Vector(0, 0, 1));
+
+        var baselineIntersections = baseline.calcIntersections(ray);
+        var gridIntersections = grid.calcIntersections(ray);
+
+        assertNotNull(baselineIntersections, "Baseline should intersect flat triangles");
+        assertNotNull(gridIntersections, "Grid should intersect flat triangles");
+        assertEquals(baselineIntersections.size(), gridIntersections.size(),
+                "Grid should find same number of intersections as baseline in flat scene");
     }
 }

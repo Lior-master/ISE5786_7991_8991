@@ -84,4 +84,40 @@ public final class AABB {
 
         return new double[]{tMin, tMax};
     }
+
+    /**
+     * Returns a new AABB expanded on axes whose size is zero or almost zero.
+     *
+     * @param eps minimal expansion value
+     * @return padded AABB
+     */
+    public AABB paddedIfFlat(double eps) {
+        double minX = min.x();
+        double minY = min.y();
+        double minZ = min.z();
+
+        double maxX = max.x();
+        double maxY = max.y();
+        double maxZ = max.z();
+
+        if (primitives.Util.isZero(maxX - minX)) {
+            minX -= eps;
+            maxX += eps;
+        }
+
+        if (primitives.Util.isZero(maxY - minY)) {
+            minY -= eps;
+            maxY += eps;
+        }
+
+        if (primitives.Util.isZero(maxZ - minZ)) {
+            minZ -= eps;
+            maxZ += eps;
+        }
+
+        return new AABB(
+                new Point(minX, minY, minZ),
+                new Point(maxX, maxY, maxZ)
+        );
+    }
 }

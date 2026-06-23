@@ -73,19 +73,21 @@ public final class RegularGrid {
             }
         }
 
-        this.sceneAABB = global;
 
         if (global == null || finite.isEmpty()) {
             // nothing to grid
+            this.sceneAABB = null;
             nx = ny = nz = 0;
             vx = vy = vz = 0;
             return;
         }
 
-        // scene dimensions
-        double sx = global.max.x() - global.min.x();
-        double sy = global.max.y() - global.min.y();
-        double sz = global.max.z() - global.min.z();
+        this.sceneAABB = global.paddedIfFlat(1e-6); // pad to avoid zero-size dimensions
+
+        //scene dimension
+        double sx = sceneAABB.max.x() - sceneAABB.min.x();
+        double sy = sceneAABB.max.y() - sceneAABB.min.y();
+        double sz = sceneAABB.max.z() - sceneAABB.min.z();
 
         int n = Math.max(1, finite.size());
 
@@ -106,12 +108,12 @@ public final class RegularGrid {
 
         // assign geometries to voxels
         for (Pair p : finite) {
-            int x0 = clamp((int) Math.floor((p.aabb.min.x() - global.min.x()) / vx), 0, nx - 1);
-            int x1 = clamp((int) Math.floor((p.aabb.max.x() - global.min.x()) / vx), 0, nx - 1);
-            int y0 = clamp((int) Math.floor((p.aabb.min.y() - global.min.y()) / vy), 0, ny - 1);
-            int y1 = clamp((int) Math.floor((p.aabb.max.y() - global.min.y()) / vy), 0, ny - 1);
-            int z0 = clamp((int) Math.floor((p.aabb.min.z() - global.min.z()) / vz), 0, nz - 1);
-            int z1 = clamp((int) Math.floor((p.aabb.max.z() - global.min.z()) / vz), 0, nz - 1);
+            int x0 = clamp((int) Math.floor((p.aabb.min.x() - sceneAABB.min.x()) / vx), 0, nx - 1);
+            int x1 = clamp((int) Math.floor((p.aabb.max.x() - sceneAABB.min.x()) / vx), 0, nx - 1);
+            int y0 = clamp((int) Math.floor((p.aabb.min.y() - sceneAABB.min.y()) / vy), 0, ny - 1);
+            int y1 = clamp((int) Math.floor((p.aabb.max.y() - sceneAABB.min.y()) / vy), 0, ny - 1);
+            int z0 = clamp((int) Math.floor((p.aabb.min.z() - sceneAABB.min.z()) / vz), 0, nz - 1);
+            int z1 = clamp((int) Math.floor((p.aabb.max.z() - sceneAABB.min.z()) / vz), 0, nz - 1);
 
             for (int i = x0; i <= x1; ++i) {
                 for (int j = y0; j <= y1; ++j) {

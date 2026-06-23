@@ -123,35 +123,30 @@ class RegularGridRenderingTests {
         };
 
         // Time baseline
-        long startBaseline = System.currentTimeMillis();
+        long startBaseline = System.nanoTime();
         for (int iter = 0; iter < 100; iter++) {
             for (Ray ray : rays) {
                 sceneBaseline.geometries.calcIntersections(ray);
             }
         }
-        long timeBaseline = System.currentTimeMillis() - startBaseline;
+        long timeBaseline = System.nanoTime() - startBaseline;
 
         // Time with grid
-        long startWithGrid = System.currentTimeMillis();
+        long startWithGrid = System.nanoTime();
         for (int iter = 0; iter < 100; iter++) {
             for (Ray ray : rays) {
                 sceneWithGrid.geometries.calcIntersections(ray);
             }
         }
-        long timeWithGrid = System.currentTimeMillis() - startWithGrid;
+        long timeWithGrid = System.nanoTime() - startWithGrid;
 
         System.out.println("=== Performance Results (100 iterations, 4 rays each) ===");
-        System.out.println("Baseline time (ms): " + timeBaseline);
-        System.out.println("Grid time (ms): " + timeWithGrid);
+        System.out.println("Baseline time (ms): " + timeBaseline / 1_000_000.0);
+        System.out.println("Grid time (ms): " + timeWithGrid / 1_000_000.0);
         if (timeWithGrid > 0) {
             double ratio = (double) timeBaseline / timeWithGrid;
             System.out.println("Speedup ratio: " + String.format("%.2f", ratio) + "x");
         }
-        /**
-         // Grid should not be significantly slower on small scenes
-         assertTrue(timeWithGrid <= timeBaseline * 3,
-         "Grid should not be more than 3x slower on small scenes");
-         */
     }
 
     /**
@@ -176,7 +171,7 @@ class RegularGridRenderingTests {
 
         //Test grid stability with repeated queries.
         scene.setGeometries(geometries);
-     
+
         // Enable grid
         scene.geometries.enableRegularGrid(new RegularGrid.Config(1.0, 5, 100));
 
@@ -195,6 +190,10 @@ class RegularGridRenderingTests {
         assertTrue(true, "Grid handled " + count + " objects successfully");
     }
 
+    /**
+     * BV: Repeated queries on the same grid must return stable results.
+     * This verifies that grid traversal does not mutate shared state.
+     */
     @Test
     void testGridStabilityWithRepeatedQueries() {
         Scene scene = createComplexTestScene();
@@ -202,16 +201,28 @@ class RegularGridRenderingTests {
 
         Ray ray = new Ray(new Point(-20, 0, 0), new Vector(1, 0, 0));
 
-        // Query the grid many times
+        var expected = scene.geometries.calcIntersections(ray);
+
         for (int i = 0; i < 100; i++) {
-            var result = scene.geometries.calcIntersections(ray);
-            // Result should be stable across queries
-            if (i > 0) {
-                assertTrue(true, "Grid query " + i + " completed");
+            var actual = scene.geometries.calcIntersections(ray);
+
+            if (expected == null) {
+                assertNull(actual, "Query " + i + " should also return null");
+            } else {
+                assertNotNull(actual, "Query " + i + " should not return null");
+                assertEquals(expected.size(), actual.size(),
+                        "Query " + i + " should return the same number of intersections");
+
+                for (int j = 0; j < expected.size(); j++) {
+                    assertEquals(expected.get(j).point.x(), actual.get(j).point.x(), 1e-6,
+                            "Query " + i + ", intersection " + j + " wrong X");
+                    assertEquals(expected.get(j).point.y(), actual.get(j).point.y(), 1e-6,
+                            "Query " + i + ", intersection " + j + " wrong Y");
+                    assertEquals(expected.get(j).point.z(), actual.get(j).point.z(), 1e-6,
+                            "Query " + i + ", intersection " + j + " wrong Z");
+                }
             }
         }
-
-        assertTrue(true, "Grid remained stable over 100 queries");
     }
 
     /**

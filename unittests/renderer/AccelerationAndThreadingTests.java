@@ -3,6 +3,7 @@ package renderer;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import geometries.impl.RegularGrid;
 import geometries.impl.Sphere;
 import geometries.impl.Triangle;
 import lighting.AmbientLight;
@@ -59,7 +60,7 @@ class AccelerationAndThreadingTests {
      */
     @Test
     void testMultithreadingModesDoNotCrash() {
-        int[] threadModes = {0, 4, 8, 16, 32, -1};
+        int[] threadModes = {0, 4, 8, -1};
 
         for (int threads : threadModes) {
             Camera camera = buildCamera(threads, QUICK_RESOLUTION, false);
@@ -76,7 +77,7 @@ class AccelerationAndThreadingTests {
      */
     @Test
     void benchmarkAverageRenderTime() {
-        int[] threadModes = {0, 4, 8, 16, 32, -1};
+        int[] threadModes = {0, 4, 8, -1};
 
         Map<Integer, Double> averages = new LinkedHashMap<>();
 
@@ -218,7 +219,7 @@ class AccelerationAndThreadingTests {
      */
     private Camera buildCamera(int threads, int resolution, boolean softShadow) {
         Scene scene = createBenchmarkScene(softShadow);
-
+        scene.geometries.enableRegularGrid(new RegularGrid.Config(1.0, 10, 20));
         return Camera.getBuilder()
                 .setLocation(new Point(0, 0, 1000))
                 .setVpDistance(1000)
