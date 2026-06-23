@@ -54,6 +54,8 @@ final class XmlGeometryParser {
             Geometry geometry = parseGeometry((Element) node);
             scene.geometries.add(geometry);
         }
+
+        setRegularGrid(geometriesElement, scene);
     }
 
     private static void setRegularGrid(Element geometriesElement, Scene scene) {
