@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import geometries.api.Geometry;
 import geometries.api.Intersectable;
 import primitives.AABB;
 import primitives.Point;
@@ -16,160 +17,270 @@ import primitives.Ray;
 import static primitives.Util.alignZero;
 
 /**
- * Regular grid acceleration structure.
+ * Regular Grid acceleration structure.
  * <p>
- * Read-only after construction and safe for multithreaded traversal.
+ * The grid divides the finite part of the scene into 3D voxels.
+ * During ray traversal, only geometries stored in crossed voxels are tested.
+ * Infinite geometries are stored separately and are always tested normally.
+ * </p>
+ * <p>
+ * This class is read-only after construction and is therefore safe for
+ * multithreaded rendering, as long as the geometries themselves are not modified.
+ * </p>
  */
 public final class RegularGrid {
 
     /**
-     * Configuration for the RegularGrid, including density multiplier and resolution limits.
+     * Configuration object for {@link RegularGrid}.
+     * <p>
+     * The configuration is immutable to keep the grid predictable and thread-safe.
+     * </p>
      */
     public static final class Config {
+
         /**
-         * Density multiplier for grid resolution. Higher values result in more voxels.
-         * Must be positive.
+         * Default grid configuration.
          */
-        public final double density; // density multiplier
+        public static final Config DEFAULT = new Config(3.0, 1, 128);
+
         /**
-         * Minimum number of voxels along any axis. Must be positive and less than or equal to maxResolution.
+         * Density multiplier used for automatic grid resolution calculation.
+         * <p>
+         * Higher values create more voxels.
+         * </p>
+         */
+        public final double density;
+
+        /**
+         * Minimum number of voxels allowed on each axis.
          */
         public final int minResolution;
+
         /**
-         * Maximum number of voxels along any axis. Must be greater than or equal to minResolution.
+         * Maximum number of voxels allowed on each axis.
          */
         public final int maxResolution;
 
         /**
-         * Constructs a Config with the specified density and resolution limits.
+         * Padding used when the scene AABB is flat on one axis.
+         * <p>
+         * This avoids zero voxel size on scenes made only of flat triangles
+         * or polygons.
+         * </p>
+         */
+        public final double flatPadding;
+
+        /**
+         * Constructs a configuration with default flat padding.
          *
-         * @param density       the density multiplier
-         * @param minResolution the minimum number of voxels along any axis
-         * @param maxResolution the maximum number of voxels along any axis
+         * @param density       density multiplier, must be positive
+         * @param minResolution minimum resolution, must be positive
+         * @param maxResolution maximum resolution, must be at least minResolution
          */
         public Config(double density, int minResolution, int maxResolution) {
+            this(density, minResolution, maxResolution, 1e-6);
+        }
+
+        /**
+         * Constructs a configuration with explicit flat padding.
+         *
+         * @param density       density multiplier, must be positive
+         * @param minResolution minimum resolution, must be positive
+         * @param maxResolution maximum resolution, must be at least minResolution
+         * @param flatPadding   padding for flat scene AABBs, must be positive
+         */
+        public Config(double density, int minResolution, int maxResolution, double flatPadding) {
             if (density <= 0) {
                 throw new IllegalArgumentException("density must be positive");
             }
-            if (minResolution > maxResolution) {
-                throw new IllegalArgumentException("minResolution must be <= maxResolution");
-            }
             if (minResolution <= 0) {
-                throw new IllegalArgumentException("minResolution must be > 0");
+                throw new IllegalArgumentException("minResolution must be positive");
             }
+            if (maxResolution < minResolution) {
+                throw new IllegalArgumentException("maxResolution must be >= minResolution");
+            }
+            if (flatPadding <= 0) {
+                throw new IllegalArgumentException("flatPadding must be positive");
+            }
+
             this.density = density;
             this.minResolution = minResolution;
             this.maxResolution = maxResolution;
+            this.flatPadding = flatPadding;
         }
     }
 
     /**
-     * The axis-aligned bounding box of the entire scene, used for grid traversal.
+     * Scene AABB after flat-axis padding.
+     * <p>
+     * This is the box actually used by the grid.
+     * It is null when the scene has no finite geometries.
+     * </p>
      */
     private final AABB sceneAABB;
+
     /**
-     * The number of voxels along each axis (x, y, z).
+     * Number of voxels on the X axis.
      */
-    private final int nx, ny, nz;
+    private final int nx;
+
     /**
-     * The size of each voxel along each axis (x, y, z).
+     * Number of voxels on the Y axis.
      */
-    private final double vx, vy, vz;
+    private final int ny;
+
     /**
-     * Map from voxel key to list of geometries in that voxel.
-     * The key is computed as a unique long from voxel coordinates (x, y, z)
+     * Number of voxels on the Z axis.
+     */
+    private final int nz;
+
+    /**
+     * Size of one voxel on the X axis.
+     */
+    private final double vx;
+
+    /**
+     * Size of one voxel on the Y axis.
+     */
+    private final double vy;
+
+    /**
+     * Size of one voxel on the Z axis.
+     */
+    private final double vz;
+
+    /**
+     * Sparse voxel storage.
+     * <p>
+     * Only non-empty voxels are stored.
+     * The key is a flattened 3D voxel index.
+     * </p>
      */
     private final Map<Long, List<Intersectable>> voxels = new HashMap<>();
+
     /**
-     * List of geometries that do not have a finite AABB and are treated as infinite.
+     * Geometries without finite AABB.
+     * <p>
+     * For example: Plane and Tube.
+     * These geometries are not inserted into the grid and are always tested normally.
+     * </p>
      */
     private final List<Intersectable> infiniteGeometries = new ArrayList<>();
 
     /**
-     * Computes a unique key for a voxel at coordinates (x, y, z).
+     * Constructs a Regular Grid from a list of geometries.
      *
-     * @param x the x-coordinate
-     * @param y the y-coordinate
-     * @param z the z-coordinate
-     * @return the unique key
+     * @param geometries geometries to accelerate
+     * @param config     grid configuration
      */
-    private static long keyOf(int x, int y, int z) {
-        return ((long) x << 40) | ((long) y << 20) | (long) z;
-    }
-
-    /**
-     * Constructs a RegularGrid from a list of geometries and configuration.
-     *
-     * @param geometries the list of geometries to include in the grid
-     * @param cfg        the configuration for the grid
-     */
-    public RegularGrid(List<Intersectable> geometries, Config cfg) {
-        // collect finite AABBs
-        AABB global = null;
-        List<Pair> finite = new ArrayList<>();
-
-        for (Intersectable g : geometries) {
-            if (g instanceof geometries.api.Geometry) {
-                primitives.AABB aabb = ((geometries.api.Geometry) g).getAABB();
-                if (aabb == null) {
-                    infiniteGeometries.add(g);
-                } else {
-                    finite.add(new Pair(g, aabb));
-                    global = AABB.union(global, aabb);
-                }
-            } else {
-                // unknown type, treat as infinite
-                infiniteGeometries.add(g);
-            }
+    public RegularGrid(List<Intersectable> geometries, Config config) {
+        if (geometries == null) {
+            throw new IllegalArgumentException("geometries must not be null");
+        }
+        if (config == null) {
+            throw new IllegalArgumentException("config must not be null");
         }
 
+        List<BoundedGeometry> finiteGeometries = new ArrayList<>();
+        AABB globalAABB = collectGeometries(geometries, finiteGeometries);
 
-        if (global == null || finite.isEmpty()) {
-            // nothing to grid
+        if (globalAABB == null || finiteGeometries.isEmpty()) {
             this.sceneAABB = null;
-            nx = ny = nz = 0;
-            vx = vy = vz = 0;
+            this.nx = 0;
+            this.ny = 0;
+            this.nz = 0;
+            this.vx = 0;
+            this.vy = 0;
+            this.vz = 0;
             return;
         }
 
-        this.sceneAABB = global.paddedIfFlat(1e-6); // pad to avoid zero-size dimensions
+        this.sceneAABB = globalAABB.paddedIfFlat(config.flatPadding);
 
-        //scene dimension
-        double sx = sceneAABB.max.x() - sceneAABB.min.x();
-        double sy = sceneAABB.max.y() - sceneAABB.min.y();
-        double sz = sceneAABB.max.z() - sceneAABB.min.z();
+        double sceneSizeX = sceneAABB.max.x() - sceneAABB.min.x();
+        double sceneSizeY = sceneAABB.max.y() - sceneAABB.min.y();
+        double sceneSizeZ = sceneAABB.max.z() - sceneAABB.min.z();
 
-        int n = Math.max(1, finite.size());
+        int geometryCount = finiteGeometries.size();
+        double sceneVolume = sceneSizeX * sceneSizeY * sceneSizeZ;
+        double scale = Math.cbrt(config.density * geometryCount / Math.max(sceneVolume, 1e-9));
 
-        double volume = sx * sy * sz;
-        double scale = Math.cbrt(cfg.density * (double) n / Math.max(volume, 1e-9));
+        this.nx = calculateResolution(sceneSizeX, scale, config);
+        this.ny = calculateResolution(sceneSizeY, scale, config);
+        this.nz = calculateResolution(sceneSizeZ, scale, config);
 
-        int cx = Math.max(cfg.minResolution, (int) Math.ceil(sx * scale));
-        int cy = Math.max(cfg.minResolution, (int) Math.ceil(sy * scale));
-        int cz = Math.max(cfg.minResolution, (int) Math.ceil(sz * scale));
+        this.vx = sceneSizeX / nx;
+        this.vy = sceneSizeY / ny;
+        this.vz = sceneSizeZ / nz;
 
-        nx = Math.min(cfg.maxResolution, Math.max(1, cx));
-        ny = Math.min(cfg.maxResolution, Math.max(1, cy));
-        nz = Math.min(cfg.maxResolution, Math.max(1, cz));
+        assignGeometriesToVoxels(finiteGeometries);
+    }
 
-        vx = sx / nx;
-        vy = sy / ny;
-        vz = sz / nz;
+    /**
+     * Collects finite and infinite geometries.
+     * <p>
+     * Finite geometries are added to the provided list together with their AABB.
+     * Infinite geometries are stored in {@link #infiniteGeometries}.
+     * </p>
+     *
+     * @param geometries       geometries to inspect
+     * @param finiteGeometries output list for finite geometries
+     * @return global AABB of all finite geometries, or null if none exist
+     */
+    private AABB collectGeometries(List<Intersectable> geometries, List<BoundedGeometry> finiteGeometries) {
+        AABB globalAABB = null;
 
-        // assign geometries to voxels
-        for (Pair p : finite) {
-            int x0 = clamp((int) Math.floor((p.aabb.min.x() - sceneAABB.min.x()) / vx), 0, nx - 1);
-            int x1 = clamp((int) Math.floor((p.aabb.max.x() - sceneAABB.min.x()) / vx), 0, nx - 1);
-            int y0 = clamp((int) Math.floor((p.aabb.min.y() - sceneAABB.min.y()) / vy), 0, ny - 1);
-            int y1 = clamp((int) Math.floor((p.aabb.max.y() - sceneAABB.min.y()) / vy), 0, ny - 1);
-            int z0 = clamp((int) Math.floor((p.aabb.min.z() - sceneAABB.min.z()) / vz), 0, nz - 1);
-            int z1 = clamp((int) Math.floor((p.aabb.max.z() - sceneAABB.min.z()) / vz), 0, nz - 1);
+        for (Intersectable geometry : geometries) {
+            if (!(geometry instanceof Geometry concreteGeometry)) {
+                infiniteGeometries.add(geometry);
+                continue;
+            }
 
-            for (int i = x0; i <= x1; ++i) {
-                for (int j = y0; j <= y1; ++j) {
-                    for (int k = z0; k <= z1; ++k) {
-                        long key = keyOf(i, j, k);
-                        voxels.computeIfAbsent(key, __ -> new ArrayList<>()).add(p.geometry);
+            AABB aabb = concreteGeometry.getAABB();
+
+            if (aabb == null) {
+                infiniteGeometries.add(geometry);
+            } else {
+                finiteGeometries.add(new BoundedGeometry(geometry, aabb));
+                globalAABB = AABB.union(globalAABB, aabb);
+            }
+        }
+
+        return globalAABB;
+    }
+
+    /**
+     * Calculates the number of voxels on one axis.
+     *
+     * @param axisSize size of the scene on this axis
+     * @param scale    automatic scale factor
+     * @param config   grid configuration
+     * @return clamped voxel count for this axis
+     */
+    private static int calculateResolution(double axisSize, double scale, Config config) {
+        int automaticResolution = (int) Math.ceil(axisSize * scale);
+        int atLeastMin = Math.max(config.minResolution, automaticResolution);
+        return Math.min(config.maxResolution, Math.max(1, atLeastMin));
+    }
+
+    /**
+     * Assigns all finite geometries to the voxels overlapped by their AABB.
+     *
+     * @param finiteGeometries finite geometries with their bounding boxes
+     */
+    private void assignGeometriesToVoxels(List<BoundedGeometry> finiteGeometries) {
+        for (BoundedGeometry boundedGeometry : finiteGeometries) {
+            int x0 = indexX(boundedGeometry.aabb.min.x());
+            int x1 = indexX(boundedGeometry.aabb.max.x());
+            int y0 = indexY(boundedGeometry.aabb.min.y());
+            int y1 = indexY(boundedGeometry.aabb.max.y());
+            int z0 = indexZ(boundedGeometry.aabb.min.z());
+            int z1 = indexZ(boundedGeometry.aabb.max.z());
+
+            for (int x = x0; x <= x1; x++) {
+                for (int y = y0; y <= y1; y++) {
+                    for (int z = z0; z <= z1; z++) {
+                        addGeometryToVoxel(x, y, z, boundedGeometry.geometry);
                     }
                 }
             }
@@ -177,136 +288,308 @@ public final class RegularGrid {
     }
 
     /**
-     * Clamps a value v to the range [a, b].
+     * Adds one geometry to one voxel.
      *
-     * @param v the value to clamp
-     * @param a the lower bound
-     * @param b the upper bound
-     * @return the clamped value
+     * @param x        voxel X index
+     * @param y        voxel Y index
+     * @param z        voxel Z index
+     * @param geometry geometry to insert
      */
-    private static int clamp(int v, int a, int b) {
-        return Math.max(a, Math.min(b, v));
+    private void addGeometryToVoxel(int x, int y, int z, Intersectable geometry) {
+        voxels.computeIfAbsent(keyOf(x, y, z), ignored -> new ArrayList<>()).add(geometry);
     }
 
     /**
-     * Returns intersections of ray with geometries using the grid traversal.
+     * Converts an X coordinate into a voxel index.
      *
-     * @param ray the ray to test
-     * @return list of intersections, or null if none
+     * @param x coordinate on X axis
+     * @return clamped voxel index
      */
-    public List<geometries.api.Intersectable.Intersection> calcIntersections(Ray ray) {
-        List<geometries.api.Intersectable.Intersection> result = new ArrayList<>();
+    private int indexX(double x) {
+        return clamp((int) Math.floor((x - sceneAABB.min.x()) / vx), 0, nx - 1);
+    }
 
-        // always test infinite geometries
-        for (Intersectable g : infiniteGeometries) {
-            var ints = g.calcIntersections(ray);
-            if (ints != null) result.addAll(ints);
-        }
+    /**
+     * Converts a Y coordinate into a voxel index.
+     *
+     * @param y coordinate on Y axis
+     * @return clamped voxel index
+     */
+    private int indexY(double y) {
+        return clamp((int) Math.floor((y - sceneAABB.min.y()) / vy), 0, ny - 1);
+    }
+
+    /**
+     * Converts a Z coordinate into a voxel index.
+     *
+     * @param z coordinate on Z axis
+     * @return clamped voxel index
+     */
+    private int indexZ(double z) {
+        return clamp((int) Math.floor((z - sceneAABB.min.z()) / vz), 0, nz - 1);
+    }
+
+    /**
+     * Converts a 3D voxel index into one unique long key.
+     * <p>
+     * This is the same idea as flattening a 3D array into a 1D array.
+     * </p>
+     *
+     * @param x voxel X index
+     * @param y voxel Y index
+     * @param z voxel Z index
+     * @return unique key for this voxel
+     */
+    private long keyOf(int x, int y, int z) {
+        return ((long) x * ny + y) * nz + z;
+    }
+
+    /**
+     * Clamps an integer value into a given range.
+     *
+     * @param value value to clamp
+     * @param min   minimal allowed value
+     * @param max   maximal allowed value
+     * @return clamped value
+     */
+    private static int clamp(int value, int min, int max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    /**
+     * Finds intersections between a ray and the scene using Regular Grid traversal.
+     * <p>
+     * The grid is used only to reduce the number of geometries tested.
+     * Exact intersection calculations are still performed by each geometry.
+     * </p>
+     *
+     * @param ray ray to test
+     * @return list of intersections, or null if no intersection exists
+     */
+    public List<Intersectable.Intersection> calcIntersections(Ray ray) {
+        List<Intersectable.Intersection> result = new ArrayList<>();
+
+        addInfiniteGeometryIntersections(ray, result);
 
         if (sceneAABB == null) {
             return result.isEmpty() ? null : result;
         }
 
         double[] tRange = sceneAABB.intersect(ray);
+
         if (tRange == null) {
             return result.isEmpty() ? null : result;
         }
 
-        double tEnter = tRange[0];
-        double tExit = tRange[1];
-
-        double tStart = Math.max(tEnter, 0.0);
-        Point p = ray.getPoint(tStart);
-
-        int ix = clamp((int) Math.floor((p.x() - sceneAABB.min.x()) / vx), 0, nx - 1);
-        int iy = clamp((int) Math.floor((p.y() - sceneAABB.min.y()) / vy), 0, ny - 1);
-        int iz = clamp((int) Math.floor((p.z() - sceneAABB.min.z()) / vz), 0, nz - 1);
-
-        double rx = ray.direction().x();
-        double ry = ray.direction().y();
-        double rz = ray.direction().z();
-
-        int stepX = rx > 0 ? 1 : (rx < 0 ? -1 : 0);
-        int stepY = ry > 0 ? 1 : (ry < 0 ? -1 : 0);
-        int stepZ = rz > 0 ? 1 : (rz < 0 ? -1 : 0);
-
-        double nextBoundaryX = sceneAABB.min.x() + (ix + (stepX > 0 ? 1 : 0)) * vx;
-        double nextBoundaryY = sceneAABB.min.y() + (iy + (stepY > 0 ? 1 : 0)) * vy;
-        double nextBoundaryZ = sceneAABB.min.z() + (iz + (stepZ > 0 ? 1 : 0)) * vz;
-
-        double tMaxX = stepX == 0 ? Double.POSITIVE_INFINITY : alignZero((nextBoundaryX - ray.origin().x()) / rx);
-        double tMaxY = stepY == 0 ? Double.POSITIVE_INFINITY : alignZero((nextBoundaryY - ray.origin().y()) / ry);
-        double tMaxZ = stepZ == 0 ? Double.POSITIVE_INFINITY : alignZero((nextBoundaryZ - ray.origin().z()) / rz);
-
-        double tDeltaX = stepX == 0 ? Double.POSITIVE_INFINITY : Math.abs(vx / rx);
-        double tDeltaY = stepY == 0 ? Double.POSITIVE_INFINITY : Math.abs(vy / ry);
-        double tDeltaZ = stepZ == 0 ? Double.POSITIVE_INFINITY : Math.abs(vz / rz);
-
-        // tested geometries set to avoid duplicate checks
-        Set<Intersectable> tested = Collections.newSetFromMap(new IdentityHashMap<>());
-
-        while (ix >= 0 && ix < nx && iy >= 0 && iy < ny && iz >= 0 && iz < nz && tStart <= tExit) {
-            long key = keyOf(ix, iy, iz);
-            var list = voxels.get(key);
-            if (list != null) {
-                for (Intersectable g : list) {
-                    if (!tested.contains(g)) {
-                        tested.add(g);
-                        var ints = g.calcIntersections(ray);
-                        if (ints != null) result.addAll(ints);
-                    }
-                }
-            }
-
-            // advance to next voxel
-            if (tMaxX < tMaxY) {
-                if (tMaxX < tMaxZ) {
-                    ix += stepX;
-                    tStart = tMaxX;
-                    tMaxX += tDeltaX;
-                } else {
-                    iz += stepZ;
-                    tStart = tMaxZ;
-                    tMaxZ += tDeltaZ;
-                }
-            } else {
-                if (tMaxY < tMaxZ) {
-                    iy += stepY;
-                    tStart = tMaxY;
-                    tMaxY += tDeltaY;
-                } else {
-                    iz += stepZ;
-                    tStart = tMaxZ;
-                    tMaxZ += tDeltaZ;
-                }
-            }
-        }
+        traverseGrid(ray, tRange[0], tRange[1], result);
 
         return result.isEmpty() ? null : result;
     }
 
     /**
-     * Helper class to hold a geometry and its AABB for grid construction.
+     * Adds intersections with infinite geometries.
+     *
+     * @param ray    ray to test
+     * @param result output intersection list
      */
-    private static final class Pair {
-        /**
-         * The geometry.
-         */
-        final Intersectable geometry;
-        /**
-         * The AABB of the geometry.
-         */
-        final AABB aabb;
+    private void addInfiniteGeometryIntersections(Ray ray, List<Intersectable.Intersection> result) {
+        for (Intersectable geometry : infiniteGeometries) {
+            List<Intersectable.Intersection> intersections = geometry.calcIntersections(ray);
+
+            if (intersections != null) {
+                result.addAll(intersections);
+            }
+        }
+    }
+
+    /**
+     * Traverses the grid using the 3DDDA algorithm.
+     *
+     * @param ray    ray to traverse
+     * @param tEnter ray parameter where the ray enters the scene AABB
+     * @param tExit  ray parameter where the ray exits the scene AABB
+     * @param result output intersection list
+     */
+    private void traverseGrid(Ray ray, double tEnter, double tExit, List<Intersectable.Intersection> result) {
+        double tStart = Math.max(tEnter, 0.0);
+        Point startPoint = ray.getPoint(tStart);
+
+        int x = indexX(startPoint.x());
+        int y = indexY(startPoint.y());
+        int z = indexZ(startPoint.z());
+
+        double dx = ray.direction().x();
+        double dy = ray.direction().y();
+        double dz = ray.direction().z();
+
+        int stepX = step(dx);
+        int stepY = step(dy);
+        int stepZ = step(dz);
+
+        double tMaxX = firstBoundaryT(ray.origin().x(), dx, sceneAABB.min.x(), x, vx, stepX);
+        double tMaxY = firstBoundaryT(ray.origin().y(), dy, sceneAABB.min.y(), y, vy, stepY);
+        double tMaxZ = firstBoundaryT(ray.origin().z(), dz, sceneAABB.min.z(), z, vz, stepZ);
+
+        double tDeltaX = deltaT(dx, vx);
+        double tDeltaY = deltaT(dy, vy);
+        double tDeltaZ = deltaT(dz, vz);
+
+        Set<Intersectable> testedGeometries = Collections.newSetFromMap(new IdentityHashMap<>());
+
+        while (isInsideGrid(x, y, z) && tStart <= tExit) {
+            addVoxelIntersections(ray, x, y, z, testedGeometries, result);
+
+            if (tMaxX < tMaxY) {
+                if (tMaxX < tMaxZ) {
+                    x += stepX;
+                    tStart = tMaxX;
+                    tMaxX += tDeltaX;
+                } else {
+                    z += stepZ;
+                    tStart = tMaxZ;
+                    tMaxZ += tDeltaZ;
+                }
+            } else {
+                if (tMaxY < tMaxZ) {
+                    y += stepY;
+                    tStart = tMaxY;
+                    tMaxY += tDeltaY;
+                } else {
+                    z += stepZ;
+                    tStart = tMaxZ;
+                    tMaxZ += tDeltaZ;
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns the traversal step for one axis.
+     *
+     * @param direction ray direction component on this axis
+     * @return 1, -1, or 0
+     */
+    private static int step(double direction) {
+        return direction > 0 ? 1 : direction < 0 ? -1 : 0;
+    }
+
+    /**
+     * Calculates the ray parameter of the first voxel boundary on one axis.
+     *
+     * @param originComponent ray origin component on this axis
+     * @param direction       ray direction component on this axis
+     * @param gridMin         minimal scene coordinate on this axis
+     * @param index           current voxel index on this axis
+     * @param voxelSize       voxel size on this axis
+     * @param step            traversal step on this axis
+     * @return ray parameter of the next voxel boundary
+     */
+    private static double firstBoundaryT(
+            double originComponent,
+            double direction,
+            double gridMin,
+            int index,
+            double voxelSize,
+            int step
+    ) {
+        if (step == 0) {
+            return Double.POSITIVE_INFINITY;
+        }
+
+        double boundary = gridMin + (index + (step > 0 ? 1 : 0)) * voxelSize;
+        return alignZero((boundary - originComponent) / direction);
+    }
+
+    /**
+     * Calculates the ray parameter distance between two voxel boundaries on one axis.
+     *
+     * @param direction ray direction component on this axis
+     * @param voxelSize voxel size on this axis
+     * @return delta t for this axis
+     */
+    private static double deltaT(double direction, double voxelSize) {
+        if (step(direction) == 0) {
+            return Double.POSITIVE_INFINITY;
+        }
+
+        return Math.abs(voxelSize / direction);
+    }
+
+    /**
+     * Checks whether a voxel index is inside the grid.
+     *
+     * @param x voxel X index
+     * @param y voxel Y index
+     * @param z voxel Z index
+     * @return true if the voxel is inside the grid
+     */
+    private boolean isInsideGrid(int x, int y, int z) {
+        return x >= 0 && x < nx
+                && y >= 0 && y < ny
+                && z >= 0 && z < nz;
+    }
+
+    /**
+     * Adds intersections for geometries stored in one voxel.
+     *
+     * @param ray              ray to test
+     * @param x                voxel X index
+     * @param y                voxel Y index
+     * @param z                voxel Z index
+     * @param testedGeometries geometries already tested for this ray
+     * @param result           output intersection list
+     */
+    private void addVoxelIntersections(
+            Ray ray,
+            int x,
+            int y,
+            int z,
+            Set<Intersectable> testedGeometries,
+            List<Intersectable.Intersection> result
+    ) {
+        List<Intersectable> geometries = voxels.get(keyOf(x, y, z));
+
+        if (geometries == null) {
+            return;
+        }
+
+        for (Intersectable geometry : geometries) {
+            if (!testedGeometries.add(geometry)) {
+                continue;
+            }
+
+            List<Intersectable.Intersection> intersections = geometry.calcIntersections(ray);
+
+            if (intersections != null) {
+                result.addAll(intersections);
+            }
+        }
+    }
+
+    /**
+     * Helper object storing a geometry together with its finite AABB.
+     */
+    private static final class BoundedGeometry {
 
         /**
-         * Constructs a Pair with the given geometry and its AABB.
-         *
-         * @param g the geometry
-         * @param a the AABB of the geometry
+         * Geometry stored in the grid.
          */
-        Pair(Intersectable g, AABB a) {
-            geometry = g;
-            aabb = a;
+        private final Intersectable geometry;
+
+        /**
+         * AABB of the geometry.
+         */
+        private final AABB aabb;
+
+        /**
+         * Constructs a bounded geometry pair.
+         *
+         * @param geometry geometry
+         * @param aabb     geometry AABB
+         */
+        private BoundedGeometry(Intersectable geometry, AABB aabb) {
+            this.geometry = geometry;
+            this.aabb = aabb;
         }
     }
 }

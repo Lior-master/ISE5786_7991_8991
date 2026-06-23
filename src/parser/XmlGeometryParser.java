@@ -4,6 +4,7 @@ import geometries.api.Geometry;
 import geometries.impl.Cylinder;
 import geometries.impl.Plane;
 import geometries.impl.Polygon;
+import geometries.impl.RegularGrid;
 import geometries.impl.Sphere;
 import geometries.impl.Triangle;
 import geometries.impl.Tube;
@@ -41,6 +42,7 @@ final class XmlGeometryParser {
 
         Element geometriesElement = (Element) geometriesNodes.item(0);
         NodeList geometryNodes = geometriesElement.getChildNodes();
+        setRegularGrid(geometriesElement, scene);
 
         for (int i = 0; i < geometryNodes.getLength(); i++) {
             Node node = geometryNodes.item(i);
@@ -52,6 +54,22 @@ final class XmlGeometryParser {
             Geometry geometry = parseGeometry((Element) node);
             scene.geometries.add(geometry);
         }
+    }
+
+    private static void setRegularGrid(Element geometriesElement, Scene scene) {
+        if (!geometriesElement.hasAttributes()) {
+            scene.geometries.disableRegularGrid();
+            return;
+        }
+        if (geometriesElement.hasAttribute("Default") && geometriesElement.getAttribute("Default").equals("true")) {
+            scene.geometries.enableRegularGrid(RegularGrid.Config.DEFAULT);
+            return;
+        }
+        double density = geometriesElement.hasAttribute("Density") ? Double.parseDouble(geometriesElement.getAttribute("Density")) : 3.0;
+        int min = geometriesElement.hasAttribute("minResolution") ? Integer.parseInt(geometriesElement.getAttribute("minResolution")) : 1;
+        int max = geometriesElement.hasAttribute("maxResolution") ? Integer.parseInt(geometriesElement.getAttribute("maxResolution")) : 128;
+
+        scene.geometries.enableRegularGrid(new RegularGrid.Config(density, min, max));
     }
 
     /**

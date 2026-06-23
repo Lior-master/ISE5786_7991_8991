@@ -347,7 +347,7 @@ class AccelerationAndThreadingTests {
      * This is not a benchmark, just a quick comparison.
      */
     @Test
-    public void multithreadingTest() {
+    public void multithreadingAndAccelerationTest() {
         Camera.Builder cameraBuilder = loadImage("xml/SoftShadowOn.xml", true);
 
         long start = System.nanoTime();
@@ -361,4 +361,5 @@ class AccelerationAndThreadingTests {
         end = System.nanoTime();
         System.out.println("With 4 threads time: " + ((end - start) / 1_000_000_000.0) + " seconds");
     }
+
 }
