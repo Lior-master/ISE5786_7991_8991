@@ -17,11 +17,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Tests follow the methodology of
  * Equivalence Partitions (EP) and Boundary Values (BVA).
  */
-class TubeTests {
+class TubeTest {
     /**
      * Default constructor to satisfy JavaDoc generator
      */
-    TubeTests() { /* to satisfy JavaDoc generator */ }
+    TubeTest() { /* to satisfy JavaDoc generator */ }
 
     /**
      * Delta value for accuracy when comparing double values

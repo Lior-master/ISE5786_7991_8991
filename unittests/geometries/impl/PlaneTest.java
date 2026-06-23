@@ -24,12 +24,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * Tests follow the methodology of
  * Equivalence Partitions (EP) and Boundary Values (BVA).
  */
-class PlaneTests {
+class PlaneTest {
 
     /**
      * Default constructor to satisfy JavaDoc generator.
      */
-    PlaneTests() { /* to satisfy JavaDoc generator */ }
+    PlaneTest() { /* to satisfy JavaDoc generator */ }
 
     /**
      * Reference point on the test plane z = 3.

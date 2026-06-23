@@ -18,11 +18,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * Tests follow the methodology of
  * Equivalence Partitions (EP) and Boundary Values (BVA).
  */
-class PolygonTests {
+class PolygonTest {
     /**
      * Default constructor to satisfy JavaDoc generator
      */
-    PolygonTests() { /* to satisfy JavaDoc generator */ }
+    PolygonTest() { /* to satisfy JavaDoc generator */ }
 
     /**
      * Vertex (1,0,0) used in polygon tests

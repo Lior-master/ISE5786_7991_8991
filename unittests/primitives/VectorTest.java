@@ -24,11 +24,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * Tests follow the methodology of
  * Equivalence Partitions (EP) and Boundary Values (BVA).
  */
-class VectorTests {
+class VectorTest {
     /**
      * Default constructor to satisfy JavaDoc generator
      */
-    VectorTests() { /* to satisfy JavaDoc generator */ }
+    VectorTest() { /* to satisfy JavaDoc generator */ }
 
     /**
      * Delta value for accuracy when comparing double values

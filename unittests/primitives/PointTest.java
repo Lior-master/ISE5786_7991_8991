@@ -18,11 +18,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * Tests follow the methodology of
  * Equivalence Partitions (EP) and Boundary Values (BVA).
  */
-class PointTests {
+class PointTest {
     /**
      * Default constructor to satisfy JavaDoc generator
      */
-    PointTests() { /* to satisfy JavaDoc generator */ }
+    PointTest() { /* to satisfy JavaDoc generator */ }
 
     /**
      * Delta value for accuracy when comparing double values

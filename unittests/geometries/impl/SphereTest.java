@@ -22,12 +22,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  * Tests follow the methodology of
  * Equivalence Partitions (EP) and Boundary Values (BVA).
  */
-class SphereTests {
+class SphereTest {
 
     /**
      * Default constructor to satisfy JavaDoc generator.
      */
-    SphereTests() { /* to satisfy JavaDoc generator */ }
+    SphereTest() { /* to satisfy JavaDoc generator */ }
 
     /**
      * Point (1,2,3) - center of tested sphere
@@ -96,7 +96,7 @@ class SphereTests {
         Point intersection1 = new Point(-0.9703293088490064, 2.343223563716998, 3);
         Point intersection2 = new Point(2.370329308849005, 3.456776436283002, 3);
         List<Point> expected1 = List.of(intersection1, intersection2);
-        
+
         final var result1 = SPHERE.findIntersections(new Ray(
                 new Point(-2, 2, 3),
                 new Vector(3, 1, 0)));

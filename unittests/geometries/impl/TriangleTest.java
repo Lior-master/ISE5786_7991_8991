@@ -21,12 +21,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  * Tests follow the methodology of
  * Equivalence Partitions (EP) and Boundary Values (BVA).
  */
-class TriangleTests {
+class TriangleTest {
 
     /**
      * Default constructor to satisfy JavaDoc generator.
      */
-    TriangleTests() { /* to satisfy JavaDoc generator */ }
+    TriangleTest() { /* to satisfy JavaDoc generator */ }
 
     /**
      * First vertex of the triangle used in normal tests.
