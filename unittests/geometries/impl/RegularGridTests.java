@@ -36,6 +36,11 @@ class RegularGridTests {
 
     /**
      * Compare two intersection lists by point coordinates after sorting by distance.
+     *
+     * @param ray      the ray used for distance sorting
+     * @param expected the expected intersection list
+     * @param actual   the actual intersection list
+     * @param message  the message to display on assertion failure
      */
     private static void assertSameIntersectionPoints(
             Ray ray,
@@ -72,6 +77,8 @@ class RegularGridTests {
 
     /**
      * Create a simple baseline Geometries object.
+     *
+     * @return Geometries without grid
      */
     private static Geometries createBaselineGeometries() {
         return new Geometries(
@@ -87,6 +94,8 @@ class RegularGridTests {
 
     /**
      * Create the same Geometries object with grid enabled.
+     *
+     * @return Geometries with grid enabled
      */
     private static Geometries createGridGeometries() {
         Geometries geometries = createBaselineGeometries();

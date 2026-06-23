@@ -21,6 +21,10 @@ public class Geometries extends Intersectable {
      * Internal list of all intersectable geometries in the collection.
      */
     private final List<Intersectable> geometries = new ArrayList<>();
+    /**
+     * Optional regular grid acceleration structure for efficient intersection testing.
+     * If null, the collection will perform brute-force intersection checks.
+     */
     private RegularGrid grid = null;
 
     /**
@@ -47,19 +51,33 @@ public class Geometries extends Intersectable {
 
     /**
      * Returns an unmodifiable view of the contained geometries.
+     *
+     * @return an unmodifiable list of intersectable geometries
      */
-    public List<Intersectable> getList() { return List.copyOf(geometries); }
+    public List<Intersectable> getList() {
+        return List.copyOf(geometries);
+    }
 
     /**
      * Builds a regular grid acceleration structure with the provided config.
      * If cfg is null the grid is disabled.
+     *
+     * @param cfg the configuration for the regular grid; if null, disables the grid
      */
     public void enableRegularGrid(RegularGrid.Config cfg) {
-        if (cfg == null) { grid = null; return; }
+        if (cfg == null) {
+            grid = null;
+            return;
+        }
         grid = new RegularGrid(geometries, cfg);
     }
 
-    public void disableRegularGrid() { grid = null; }
+    /**
+     * Disables the regular grid acceleration structure, reverting to brute-force intersection checks.
+     */
+    public void disableRegularGrid() {
+        grid = null;
+    }
 
     @Override
     protected List<Intersection> calcIntersectionsHelper(Ray ray) {

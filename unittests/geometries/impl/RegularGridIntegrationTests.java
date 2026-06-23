@@ -1,14 +1,19 @@
 package geometries.impl;
 
-import org.junit.jupiter.api.Test;
-import primitives.*;
-import scene.Scene;
-import geometries.api.Intersectable;
-
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import geometries.api.Intersectable;
+import org.junit.jupiter.api.Test;
+import primitives.Point;
+import primitives.Ray;
+import primitives.Vector;
+import scene.Scene;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Integration tests for Regular Grid acceleration.
@@ -23,22 +28,24 @@ class RegularGridIntegrationTests {
 
     /**
      * Create a simple test scene with a few geometries.
+     *
+     * @return a Scene with the specified geometry
      */
     private static Scene createTestScene() {
         Scene scene = new Scene("RegularGrid Integration Test");
-        
+
         // Add some geometries
         Sphere sphere1 = new Sphere(new Point(0, 0, 0), 2.0);
         Sphere sphere2 = new Sphere(new Point(5, 5, 5), 1.5);
         Triangle triangle = new Triangle(
-            new Point(-3, -3, 0),
-            new Point(3, -3, 0),
-            new Point(0, 3, 0)
+                new Point(-3, -3, 0),
+                new Point(3, -3, 0),
+                new Point(0, 3, 0)
         );
-        
+
         Geometries geoms = new Geometries(sphere1, sphere2, triangle);
         scene.setGeometries(geoms);
-        
+
         return scene;
     }
 
@@ -57,11 +64,11 @@ class RegularGridIntegrationTests {
 
         // Test rays
         Ray[] testRays = {
-            new Ray(new Point(-10, 0, 0), new Vector(1, 0, 0)),
-            new Ray(new Point(0, -10, 0), new Vector(0, 1, 0)),
-            new Ray(new Point(0, 0, -10), new Vector(0, 0, 1)),
-            new Ray(new Point(-5, -5, -5), new Vector(1, 1, 1).normalize()),
-            new Ray(new Point(10, 10, 10), new Vector(-1, -1, -1).normalize())
+                new Ray(new Point(-10, 0, 0), new Vector(1, 0, 0)),
+                new Ray(new Point(0, -10, 0), new Vector(0, 1, 0)),
+                new Ray(new Point(0, 0, -10), new Vector(0, 0, 1)),
+                new Ray(new Point(-5, -5, -5), new Vector(1, 1, 1).normalize()),
+                new Ray(new Point(10, 10, 10), new Vector(-1, -1, -1).normalize())
         };
 
         for (Ray ray : testRays) {
@@ -74,7 +81,7 @@ class RegularGridIntegrationTests {
             } else {
                 assertNotNull(intersectionsWithGrid, "Grid should find intersections when baseline does for ray: " + ray);
                 assertEquals(intersectionsBaseline.size(), intersectionsWithGrid.size(),
-                    "Same number of intersections expected for ray: " + ray);
+                        "Same number of intersections expected for ray: " + ray);
             }
         }
     }
@@ -96,19 +103,19 @@ class RegularGridIntegrationTests {
 
         if (intersectionsBaseline != null) {
             assertNotNull(intersectionsWithGrid, "Grid should find intersections");
-            
+
             var closestBaseline = ray.findClosestIntersection(intersectionsBaseline);
             var closestWithGrid = ray.findClosestIntersection(intersectionsWithGrid);
 
             assertNotNull(closestBaseline, "Baseline should find closest");
             assertNotNull(closestWithGrid, "Grid should find closest");
-            
+
             assertEquals(closestBaseline.point.x(), closestWithGrid.point.x(), 0.001,
-                "Closest intersection X should match");
+                    "Closest intersection X should match");
             assertEquals(closestBaseline.point.y(), closestWithGrid.point.y(), 0.001,
-                "Closest intersection Y should match");
+                    "Closest intersection Y should match");
             assertEquals(closestBaseline.point.z(), closestWithGrid.point.z(), 0.001,
-                "Closest intersection Z should match");
+                    "Closest intersection Z should match");
         }
     }
 
@@ -133,7 +140,7 @@ class RegularGridIntegrationTests {
         } else {
             assertNotNull(intersectionsWithoutGrid, "After disabling grid, intersections should remain");
             assertEquals(intersectionsWithGrid.size(), intersectionsWithoutGrid.size(),
-                "Size should match after disabling grid");
+                    "Size should match after disabling grid");
         }
     }
 
@@ -160,7 +167,7 @@ class RegularGridIntegrationTests {
         } else {
             assertNotNull(intersectionsWithGrid, "Ray starting inside: grid should find intersections");
             assertEquals(intersectionsBaseline.size(), intersectionsWithGrid.size(),
-                "Ray starting inside: same count expected");
+                    "Ray starting inside: same count expected");
         }
     }
 
@@ -170,7 +177,7 @@ class RegularGridIntegrationTests {
     @Test
     void testSmallScene() {
         Scene scene = new Scene("Small Test Scene");
-        
+
         Sphere sphere = new Sphere(new Point(0, 0, 0), 0.1);
         Geometries geoms = new Geometries(sphere);
         scene.setGeometries(geoms);
@@ -190,7 +197,7 @@ class RegularGridIntegrationTests {
     @Test
     void testLargeSparsScene() {
         Scene scene = new Scene("Large Sparse Scene");
-        
+
         List<Intersectable> geoms = new ArrayList<>();
         // Create spheres spread far apart
         for (int i = 0; i < 5; i++) {
@@ -223,17 +230,17 @@ class RegularGridIntegrationTests {
         // Ray parallel to X axis
         Ray rayX = new Ray(new Point(-10, 0, 0), new Vector(1, 0, 0));
         assertDoesNotThrow(() -> scene.geometries.calcIntersections(rayX),
-            "Ray parallel to X should not throw");
+                "Ray parallel to X should not throw");
 
         // Ray parallel to Y axis
         Ray rayY = new Ray(new Point(0, -10, 0), new Vector(0, 1, 0));
         assertDoesNotThrow(() -> scene.geometries.calcIntersections(rayY),
-            "Ray parallel to Y should not throw");
+                "Ray parallel to Y should not throw");
 
         // Ray parallel to Z axis
         Ray rayZ = new Ray(new Point(0, 0, -10), new Vector(0, 0, 1));
         assertDoesNotThrow(() -> scene.geometries.calcIntersections(rayZ),
-            "Ray parallel to Z should not throw");
+                "Ray parallel to Z should not throw");
     }
 
     /**
@@ -247,7 +254,7 @@ class RegularGridIntegrationTests {
         // Diagonal ray
         Ray rayDiag = new Ray(new Point(-10, -10, -10), new Vector(1, 1, 1).normalize());
         assertDoesNotThrow(() -> scene.geometries.calcIntersections(rayDiag),
-            "Diagonal ray should not throw");
+                "Diagonal ray should not throw");
     }
 
     // ============ Tests for Configuration Parameters ============

@@ -42,14 +42,32 @@ public class Point {
         this._xyz = _xyz;
     }
 
-    /** Return X coordinate */
-    public double x() { return _xyz._d1(); }
+    /**
+     * Returns the X coordinate of this point.
+     *
+     * @return the x-coordinate of this point
+     */
+    public double x() {
+        return _xyz._d1();
+    }
 
-    /** Return Y coordinate */
-    public double y() { return _xyz._d2(); }
+    /**
+     * Return Y coordinate
+     *
+     * @return the y-coordinate of this point
+     */
+    public double y() {
+        return _xyz._d2();
+    }
 
-    /** Return Z coordinate */
-    public double z() { return _xyz._d3(); }
+    /**
+     * Return Z coordinate
+     *
+     * @return the z-coordinate of this point
+     */
+    public double z() {
+        return _xyz._d3();
+    }
 
     /**
      * Subtracts a point from this point.

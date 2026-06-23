@@ -31,6 +31,11 @@ class GeometryAABBTests {
 
     /**
      * Assert AABB coordinates.
+     *
+     * @param box     the AABB to check
+     * @param min     expected minimum point
+     * @param max     expected maximum point
+     * @param message message for assertion failures
      */
     private static void assertAABB(AABB box, Point min, Point max, String message) {
         assertNotNull(box, message + " AABB should not be null");

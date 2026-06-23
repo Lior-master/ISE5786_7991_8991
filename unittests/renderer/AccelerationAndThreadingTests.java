@@ -342,6 +342,10 @@ class AccelerationAndThreadingTests {
         return scene;
     }
 
+    /**
+     * Manual test to compare rendering time with and without multithreading.
+     * This is not a benchmark, just a quick comparison.
+     */
     @Test
     public void multithreadingTest() {
         Camera.Builder cameraBuilder = loadImage("xml/SoftShadowOn.xml", true);

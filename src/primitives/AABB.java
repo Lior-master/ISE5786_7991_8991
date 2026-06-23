@@ -4,14 +4,33 @@ package primitives;
  * Axis-Aligned Bounding Box (AABB) utility used for acceleration structures.
  */
 public final class AABB {
+    /**
+     * The minimum corner of the AABB (smallest x, y, z).
+     */
     public final Point min;
+    /**
+     * The maximum corner of the AABB (largest x, y, z).
+     */
     public final Point max;
 
+    /**
+     * Constructs an AABB with the specified minimum and maximum points.
+     *
+     * @param min the minimum corner of the AABB
+     * @param max the maximum corner of the AABB
+     */
     public AABB(Point min, Point max) {
         this.min = min;
         this.max = max;
     }
 
+    /**
+     * Returns a new AABB that is the union of two AABBs.
+     *
+     * @param a the first AABB
+     * @param b the second AABB
+     * @return the union of the two AABBs
+     */
     public static AABB union(AABB a, AABB b) {
         if (a == null) return b;
         if (b == null) return a;
@@ -28,10 +47,21 @@ public final class AABB {
         return new AABB(min, max);
     }
 
+    /**
+     * Checks if the AABB is valid (i.e., all dimensions are positive).
+     *
+     * @return true if the AABB is valid, false otherwise
+     */
     public boolean isValid() {
         return min.x() <= max.x() && min.y() <= max.y() && min.z() <= max.z();
     }
 
+    /**
+     * Computes the intersection of the AABB with a ray.
+     *
+     * @param ray the ray to intersect with
+     * @return an array containing the minimum and maximum intersection distances, or null if no intersection
+     */
     public double[] intersect(Ray ray) {
         double tMin = Double.NEGATIVE_INFINITY;
         double tMax = Double.POSITIVE_INFINITY;

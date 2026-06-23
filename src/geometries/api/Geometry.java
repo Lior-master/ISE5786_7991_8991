@@ -83,6 +83,8 @@ public abstract class Geometry extends Intersectable {
      * <p>
      * Default implementation returns {@code null}. Concrete finite geometries
      * should override this method and provide their AABB.
+     *
+     * @return the AABB of the geometry, or {@code null} if not applicable
      */
     public primitives.AABB getAABB() {
         return null;

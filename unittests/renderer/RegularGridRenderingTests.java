@@ -36,6 +36,8 @@ class RegularGridRenderingTests {
 
     /**
      * Create a moderately complex scene for performance testing.
+     *
+     * @return a Scene with multiple spheres and triangles
      */
     private static Scene createComplexTestScene() {
         Scene scene = new Scene("RegularGrid Test Scene");

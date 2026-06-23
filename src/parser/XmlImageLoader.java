@@ -31,6 +31,7 @@ public final class XmlImageLoader {
      * and writes the result to the image's folder.
      *
      * @param xmlPath path to the XML file
+     * @return the camera used for rendering
      */
     public static Camera.Builder loadImage(String xmlPath) {
         return loadImage(xmlPath, false);

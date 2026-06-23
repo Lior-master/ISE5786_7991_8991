@@ -22,11 +22,31 @@ import static primitives.Util.alignZero;
  */
 public final class RegularGrid {
 
+    /**
+     * Configuration for the RegularGrid, including density multiplier and resolution limits.
+     */
     public static final class Config {
+        /**
+         * Density multiplier for grid resolution. Higher values result in more voxels.
+         * Must be positive.
+         */
         public final double density; // density multiplier
+        /**
+         * Minimum number of voxels along any axis. Must be positive and less than or equal to maxResolution.
+         */
         public final int minResolution;
+        /**
+         * Maximum number of voxels along any axis. Must be greater than or equal to minResolution.
+         */
         public final int maxResolution;
 
+        /**
+         * Constructs a Config with the specified density and resolution limits.
+         *
+         * @param density       the density multiplier
+         * @param minResolution the minimum number of voxels along any axis
+         * @param maxResolution the maximum number of voxels along any axis
+         */
         public Config(double density, int minResolution, int maxResolution) {
             if (density <= 0) {
                 throw new IllegalArgumentException("density must be positive");
@@ -43,16 +63,46 @@ public final class RegularGrid {
         }
     }
 
+    /**
+     * The axis-aligned bounding box of the entire scene, used for grid traversal.
+     */
     private final AABB sceneAABB;
+    /**
+     * The number of voxels along each axis (x, y, z).
+     */
     private final int nx, ny, nz;
+    /**
+     * The size of each voxel along each axis (x, y, z).
+     */
     private final double vx, vy, vz;
+    /**
+     * Map from voxel key to list of geometries in that voxel.
+     * The key is computed as a unique long from voxel coordinates (x, y, z)
+     */
     private final Map<Long, List<Intersectable>> voxels = new HashMap<>();
+    /**
+     * List of geometries that do not have a finite AABB and are treated as infinite.
+     */
     private final List<Intersectable> infiniteGeometries = new ArrayList<>();
 
+    /**
+     * Computes a unique key for a voxel at coordinates (x, y, z).
+     *
+     * @param x the x-coordinate
+     * @param y the y-coordinate
+     * @param z the z-coordinate
+     * @return the unique key
+     */
     private static long keyOf(int x, int y, int z) {
         return ((long) x << 40) | ((long) y << 20) | (long) z;
     }
 
+    /**
+     * Constructs a RegularGrid from a list of geometries and configuration.
+     *
+     * @param geometries the list of geometries to include in the grid
+     * @param cfg        the configuration for the grid
+     */
     public RegularGrid(List<Intersectable> geometries, Config cfg) {
         // collect finite AABBs
         AABB global = null;
@@ -126,12 +176,23 @@ public final class RegularGrid {
         }
     }
 
+    /**
+     * Clamps a value v to the range [a, b].
+     *
+     * @param v the value to clamp
+     * @param a the lower bound
+     * @param b the upper bound
+     * @return the clamped value
+     */
     private static int clamp(int v, int a, int b) {
         return Math.max(a, Math.min(b, v));
     }
 
     /**
      * Returns intersections of ray with geometries using the grid traversal.
+     *
+     * @param ray the ray to test
+     * @return list of intersections, or null if none
      */
     public List<geometries.api.Intersectable.Intersection> calcIntersections(Ray ray) {
         List<geometries.api.Intersectable.Intersection> result = new ArrayList<>();
@@ -224,10 +285,25 @@ public final class RegularGrid {
         return result.isEmpty() ? null : result;
     }
 
+    /**
+     * Helper class to hold a geometry and its AABB for grid construction.
+     */
     private static final class Pair {
+        /**
+         * The geometry.
+         */
         final Intersectable geometry;
+        /**
+         * The AABB of the geometry.
+         */
         final AABB aabb;
 
+        /**
+         * Constructs a Pair with the given geometry and its AABB.
+         *
+         * @param g the geometry
+         * @param a the AABB of the geometry
+         */
         Pair(Intersectable g, AABB a) {
             geometry = g;
             aabb = a;

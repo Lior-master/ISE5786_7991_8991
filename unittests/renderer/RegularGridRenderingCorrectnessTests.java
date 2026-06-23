@@ -1,20 +1,36 @@
 package renderer;
 
+import geometries.impl.Geometries;
+import geometries.impl.RegularGrid;
+import geometries.impl.Sphere;
+import geometries.impl.Triangle;
 import org.junit.jupiter.api.Test;
-import primitives.*;
+import primitives.Color;
+import primitives.Point;
+import primitives.Ray;
+import primitives.Vector;
 import scene.Scene;
-import geometries.impl.*;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Performance and rendering tests for Regular Grid acceleration.
  * Tests verify ray-geometry intersection correctness and performance.
  */
 class RegularGridRenderingCorrectnessTests {
-
+    /**
+     * Default constructor for the test class.
+     */
     RegularGridRenderingCorrectnessTests() { /* default */ }
 
+    /**
+     * Creates a simple test scene with a grid of spheres and two triangles.
+     *
+     * @return a Scene with the specified geometry
+     */
     private static Scene createTestScene() {
         Scene scene = new Scene("Test Scene");
         scene.setBackground(new Color(100, 100, 100));
@@ -30,6 +46,10 @@ class RegularGridRenderingCorrectnessTests {
         return scene;
     }
 
+    /**
+     * Test that the intersection results of rays with and without the grid match.
+     * This ensures that enabling the grid does not change the correctness of intersection calculations.
+     */
     @Test
     void testRayIntersectionsMatch() {
         Scene baseline = createTestScene();
@@ -37,9 +57,9 @@ class RegularGridRenderingCorrectnessTests {
         withGrid.geometries.enableRegularGrid(new RegularGrid.Config(1.0, 2, 50));
 
         Ray[] rays = {
-            new Ray(new Point(-10, 0, 0), new Vector(1, 0, 0)),
-            new Ray(new Point(0, -10, 0), new Vector(0, 1, 0)),
-            new Ray(new Point(0, 0, -10), new Vector(0, 0, 1))
+                new Ray(new Point(-10, 0, 0), new Vector(1, 0, 0)),
+                new Ray(new Point(0, -10, 0), new Vector(0, 1, 0)),
+                new Ray(new Point(0, 0, -10), new Vector(0, 0, 1))
         };
 
         for (Ray ray : rays) {
@@ -54,6 +74,9 @@ class RegularGridRenderingCorrectnessTests {
         }
     }
 
+    /**
+     * Test the performance of the grid-based intersection calculations.
+     */
     @Test
     void testPerformance() {
         Scene baseline = createTestScene();
@@ -78,6 +101,9 @@ class RegularGridRenderingCorrectnessTests {
         assertTrue(timeGrid < timeBaseline * 5, "Grid should not be extremely slow");
     }
 
+    /**
+     * Test that enabling and disabling the grid does not change the intersection results.
+     */
     @Test
     void testToggleGridOnOff() {
         Scene scene = createTestScene();
