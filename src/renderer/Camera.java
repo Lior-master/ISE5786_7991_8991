@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.MissingResourceException;
 import java.util.stream.IntStream;
 
+import geometries.impl.RegularGrid;
 import primitives.Color;
 import primitives.Point;
 import primitives.Ray;
@@ -372,6 +373,20 @@ public class Camera implements Cloneable {
         public Builder setDebugPrint(double interval) {
             if (interval < 0) throw new IllegalArgumentException("interval parameter must be non-negative");
             _camera.printInterval = interval;
+            return this;
+        }
+
+        /**
+         * Enables or disables the regular grid acceleration structure for the camera's scene.
+         * If {@code config} is {@code null}, the regular grid is disabled. Otherwise, it is enabled with the provided configuration.
+         *
+         * @param config configuration for the regular grid, or {@code null} to disable it
+         * @return this builder
+         */
+        public Builder setRegularGrid(RegularGrid.Config config) {
+            if (config == null) _camera._rayTracer._scene.geometries.disableRegularGrid();
+            else
+                _camera._rayTracer._scene.geometries.enableRegularGrid(config);
             return this;
         }
     }
