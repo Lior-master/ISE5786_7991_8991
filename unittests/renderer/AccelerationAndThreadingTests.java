@@ -1,435 +1,276 @@
 package renderer;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import geometries.impl.RegularGrid;
-import geometries.impl.Sphere;
-import geometries.impl.Triangle;
-import lighting.AmbientLight;
-import lighting.SpotLight;
 import org.junit.jupiter.api.Test;
-import primitives.Color;
-import primitives.Material;
-import primitives.Point;
-import primitives.Vector;
-import renderer.sampling.Blackboard;
-import renderer.sampling.SamplingPattern;
-import renderer.sampling.SamplingShape;
-import scene.Scene;
 
-import static java.awt.Color.BLUE;
-import static java.awt.Color.RED;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static parser.XmlImageLoader.loadImage;
 
 /**
- * Benchmark tests for Camera multithreading.
+ * Final benchmark test for MP2.
+ * <p>
+ * Compares the same final scene in four modes:
+ * no acceleration, Regular Grid only, multithreading only,
+ * and both Regular Grid + multithreading.
+ * </p>
  */
-@SuppressWarnings("java:S109")
 class AccelerationAndThreadingTests {
 
     /**
-     * Number of measured runs for each mode
+     * XML file with Regular Grid enabled.
      */
-    private static final int RUNS = 5;
+    private final String REGULAR_GRID_ON = "xml/MP2_RichScene_RegularGridOn.xml";
 
     /**
-     * Number of warm-up runs, not included in average
+     * XML file with Regular Grid disabled.
      */
-    private static final int WARMUP_RUNS = 1;
+    private final String REGULAR_GRID_OFF = "xml/MP2_RichScene_RegularGridOff.xml";
 
     /**
-     * Resolution for quick correctness test
+     * Number of measured runs for each mode.
      */
-    private static final int QUICK_RESOLUTION = 250;
+    private static final int RUNS = 1;
 
     /**
-     * Resolution for real benchmark
+     * Number of threads used when multithreading is enabled.
      */
-    private static final int BENCHMARK_RESOLUTION = 600;
+    private static final int THREADS = 4;
 
     /**
-     * Default constructor to satisfy JavaDoc generator.
+     * Default constructor to satisfy Javadoc generator.
      */
-    AccelerationAndThreadingTests() { /* to satisfy JavaDoc generator */ }
-
-    /**
-     * Quick test: verifies that all multithreading modes render without crashing.
-     * This one does not write images.
-     */
-    @Test
-    void testMultithreadingModesDoNotCrash() {
-        int[] threadModes = {0, 4, 8, -1};
-
-        for (int threads : threadModes) {
-            Camera camera = buildCamera(threads, QUICK_RESOLUTION, false);
-
-            assertDoesNotThrow(
-                    camera::renderImage,
-                    "Rendering crashed with threads = " + threadLabel(threads)
-            );
-        }
+    AccelerationAndThreadingTests() {
+        /* to satisfy Javadoc generator */
     }
 
     /**
-     * Manual benchmark.
-     */
-    @Test
-    void benchmarkAverageRenderTime() {
-        int[] threadModes = {0, 4, 8, -1};
-
-        Map<Integer, Double> averages = new LinkedHashMap<>();
-
-        System.out.println();
-        System.out.println("==========================================");
-        System.out.println("       MULTITHREADING BENCHMARK");
-        System.out.println("==========================================");
-        System.out.println();
-
-        for (int threads : threadModes) {
-            double average = measureAverageRenderTime(threads);
-            averages.put(threads, average);
-
-            System.out.printf(
-                    "FINAL | threads = %-6s | average = %.3f seconds%n",
-                    threadLabel(threads),
-                    average
-            );
-
-            System.out.println();
-        }
-
-        printSpeedups(averages);
-    }
-
-    /**
-     * Manual image generation with the best mode.
-     * Remove @Disabled to generate a final image.
-     */
-    @Test
-    void renderFinalImageWithThreads8() {
-        Camera camera = buildCamera(8, BENCHMARK_RESOLUTION, true).renderImage();
-
-        camera.printGrid(60, new Color(RED));
-        camera.writeToImage("multithreading-final-threads-8");
-    }
-
-    /**
-     * Manual image generation with stream mode.
-     * Remove @Disabled to generate a final image.
-     */
-    @Test
-    void renderFinalImageWithStream() {
-        Camera camera = buildCamera(-1, BENCHMARK_RESOLUTION, true).renderImage();
-
-        camera.printGrid(60, new Color(RED));
-        camera.writeToImage("multithreading-final-stream");
-    }
-
-    /**
-     * Measures the average render time for one multithreading mode.
-     *
-     * @param threads multithreading mode
-     * @return average render time in seconds
-     */
-    private double measureAverageRenderTime(int threads) {
-        runWarmup(threads);
-
-        long totalTime = 0;
-
-        for (int run = 1; run <= RUNS; run++) {
-            Camera camera = buildCamera(threads, BENCHMARK_RESOLUTION, true);
-
-            long start = System.nanoTime();
-
-            assertDoesNotThrow(camera::renderImage);
-
-            long end = System.nanoTime();
-
-            long elapsed = end - start;
-            totalTime += elapsed;
-
-            System.out.printf(
-                    "threads = %-6s | run %d/%d | time = %.3f seconds%n",
-                    threadLabel(threads),
-                    run,
-                    RUNS,
-                    elapsed / 1_000_000_000.0
-            );
-        }
-
-        return totalTime / 1_000_000_000.0 / RUNS;
-    }
-
-    /**
-     * Runs warm-up renderings before measuring.
-     *
-     * @param threads multithreading mode
-     */
-    private void runWarmup(int threads) {
-        for (int run = 1; run <= WARMUP_RUNS; run++) {
-            Camera camera = buildCamera(threads, BENCHMARK_RESOLUTION, true);
-            assertDoesNotThrow(camera::renderImage);
-        }
-    }
-
-    /**
-     * Prints the speedup compared to no multithreading.
-     *
-     * @param averages average render times
-     */
-    private void printSpeedups(Map<Integer, Double> averages) {
-        double baseTime = averages.get(0);
-
-        System.out.println("==========================================");
-        System.out.println("       SPEEDUP COMPARED TO threads = 0");
-        System.out.println("==========================================");
-
-        for (var entry : averages.entrySet()) {
-            int threads = entry.getKey();
-            double average = entry.getValue();
-
-            System.out.printf(
-                    "threads = %-6s | average = %.3f seconds | speedup = x%.2f%n",
-                    threadLabel(threads),
-                    average,
-                    baseTime / average
-            );
-        }
-    }
-
-    /**
-     * Converts a thread mode to a readable label.
-     *
-     * @param threads thread mode
-     * @return readable label
-     */
-    private String threadLabel(int threads) {
-        return threads == -1 ? "stream" : String.valueOf(threads);
-    }
-
-    /**
-     * Builds a camera for the benchmark.
-     *
-     * @param threads    multithreading mode
-     * @param resolution image resolution
-     * @param softShadow true for soft shadows, false for regular shadows
-     * @return configured camera
-     */
-    private Camera buildCamera(int threads, int resolution, boolean softShadow) {
-        Scene scene = createBenchmarkScene(softShadow);
-        scene.geometries.enableRegularGrid(new RegularGrid.Config(1.0, 10, 20));
-        return Camera.getBuilder()
-                .setLocation(new Point(0, 0, 1000))
-                .setVpDistance(1000)
-                .setVpSize(240, 240)
-                .setDirection(Point.ZERO, Vector.AXIS_Y)
-                .setResolution(resolution, resolution)
-                .setRayTracer(scene, RayTracerType.SIMPLE)
-                .setMultithreading(threads)
-                .setDebugPrint(0)
-                .build();
-    }
-
-    /**
-     * Creates a benchmark scene.
-     *
-     * @param softShadow true for soft shadows, false for regular shadows
-     * @return scene
-     */
-    private Scene createBenchmarkScene(boolean softShadow) {
-        Scene scene = new Scene("Multithreading benchmark scene")
-                .setBackground(new Color(8, 8, 18))
-                .setAmbientLight(new AmbientLight(new Color(28, 28, 28)));
-
-        Material sphereMaterial = new Material()
-                .setKD(0.5)
-                .setKS(0.4)
-                .setShininess(120);
-
-        Material triangleMaterial = new Material()
-                .setKD(0.45)
-                .setKS(0.35)
-                .setShininess(80);
-
-        // Large background triangles
-        scene.geometries.add(
-                new Triangle(
-                        new Point(-180, -180, -360),
-                        new Point(180, -180, -360),
-                        new Point(0, 180, -430)
-                )
-                        .setEmission(new Color(25, 25, 70))
-                        .setMaterial(triangleMaterial),
-
-                new Triangle(
-                        new Point(-180, 170, -390),
-                        new Point(180, 170, -390),
-                        new Point(0, -190, -470)
-                )
-                        .setEmission(new Color(50, 25, 60))
-                        .setMaterial(triangleMaterial)
-        );
-
-        // Central sphere
-        scene.geometries.add(
-                new Sphere(new Point(0, 0, -190), 55D)
-                        .setEmission(new Color(BLUE))
-                        .setMaterial(sphereMaterial)
-        );
-
-        // Many small spheres to make the rendering heavier
-        for (int ix = -3; ix <= 3; ix++) {
-            for (int iy = -3; iy <= 3; iy++) {
-                if (ix == 0 && iy == 0) continue;
-
-                int red = 60 + (ix + 3) * 25;
-                int green = 70 + (iy + 3) * 23;
-                int blue = 120 + ((ix + iy + 6) % 5) * 20;
-
-                double x = ix * 42;
-                double y = iy * 34;
-                double z = -240 - ((ix + iy + 6) % 4) * 25;
-
-                scene.geometries.add(
-                        new Sphere(new Point(x, y, z), 16D)
-                                .setEmission(new Color(red, green, blue))
-                                .setMaterial(sphereMaterial)
-                );
-            }
-        }
-
-        // A small triangle in front of the main sphere to create shadow
-        scene.geometries.add(
-                new Triangle(
-                        new Point(-65, -35, -80),
-                        new Point(-25, -75, -85),
-                        new Point(-62, -72, -92)
-                )
-                        .setEmission(new Color(80, 80, 160))
-                        .setMaterial(triangleMaterial)
-        );
-
-        SpotLight spotLight = new SpotLight(
-                new Color(700, 420, 300),
-                new Point(-90, -90, 180),
-                new Vector(1, 1, -3)
-        )
-                .setKl(1E-5)
-                .setKq(1.5E-7);
-
-        if (softShadow) {
-            spotLight.setBlackboard(
-                    new Blackboard()
-                            .setSize(28)
-                            .setGridSize(7)
-                            .setShape(SamplingShape.CIRCLE)
-                            .setPattern(SamplingPattern.REGULAR)
-            );
-        } else {
-            spotLight.setBlackboard(
-                    new Blackboard()
-                            .setSize(0)
-                            .setGridSize(1)
-                            .setShape(SamplingShape.RECTANGLE)
-                            .setPattern(SamplingPattern.REGULAR)
-            );
-        }
-
-        scene.lights.add(spotLight);
-
-        return scene;
-    }
-
-    /**
-     * Manual test to compare rendering time with and without multithreading.
-     * This is not a benchmark, just a quick comparison.
-     */
-    @Test
-    public void multithreadingAndAccelerationTest() {
-        Camera.Builder cameraBuilder = loadImage("xml/SoftShadowOn.xml", true);
-
-        long start = System.nanoTime();
-        cameraBuilder.setResolution(200, 200).build().renderImage();
-        long end = System.nanoTime();
-
-        System.out.println("Without multithreading time: " + ((end - start) / 1_000_000_000.0) + " seconds");
-
-        start = System.nanoTime();
-        cameraBuilder.setMultithreading(4).build().renderImage();
-        end = System.nanoTime();
-        System.out.println("With 4 threads time: " + ((end - start) / 1_000_000_000.0) + " seconds");
-    }
-
-    /**
-     * MP2 final benchmark scene.
+     * Final comparison test for MP2 acceleration and multithreading.
      * <p>
-     * Renders the same rich scene 3 times with Regular Grid enabled
-     * and 3 times with Regular Grid disabled, then prints average times.
+     * This test renders the same scene in four configurations:
+     * </p>
+     * <ul>
+     *     <li>No multithreading and no Regular Grid</li>
+     *     <li>4 threads and no Regular Grid</li>
+     *     <li>No multithreading and Regular Grid</li>
+     *     <li>4 threads and Regular Grid</li>
+     * </ul>
+     * <p>
+     * For each configuration, it prints the average render time in seconds
+     * and writes one image with a descriptive name.
      * </p>
      */
     @Test
-    public void MP2_final_scene_average() {
-        final String gridOnXml = "xml/MP2_RichScene_RegularGridOn.xml";
-        final String gridOffXml = "xml/MP2_RichScene_RegularGridOff.xml";
-        final int runs = 3;
+    void finalTestComparatifWithAccelerationAndThreading() {
+        double baselineTime = averageRenderTime(
+                REGULAR_GRID_OFF,
+                0,
+                "Baseline: no threads + no Regular Grid"
+        );
 
-        long avgGridOn = renderAverageTime(gridOnXml, runs);
-        long avgGridOff = renderAverageTime(gridOffXml, runs);
+        writeImage(
+                REGULAR_GRID_OFF,
+                0,
+                "mp2-final-01-baseline-no-threads-no-grid"
+        );
+
+        double multithreadingOnlyTime = averageRenderTime(
+                REGULAR_GRID_OFF,
+                THREADS,
+                "Multithreading only: 4 threads + no Regular Grid"
+        );
+
+        writeImage(
+                REGULAR_GRID_OFF,
+                THREADS,
+                "mp2-final-02-four-threads-no-grid"
+        );
+
+        double regularGridOnlyTime = averageRenderTime(
+                REGULAR_GRID_ON,
+                0,
+                "Regular Grid only: no threads + Regular Grid"
+        );
+
+        writeImage(
+                REGULAR_GRID_ON,
+                0,
+                "mp2-final-03-no-threads-with-regular-grid"
+        );
+
+        double fullAccelerationTime = averageRenderTime(
+                REGULAR_GRID_ON,
+                THREADS,
+                "Full acceleration: 4 threads + Regular Grid"
+        );
+
+        writeImage(
+                REGULAR_GRID_ON,
+                THREADS,
+                "mp2-final-04-four-threads-with-regular-grid"
+        );
 
         System.out.println();
-        System.out.println("========== MP2 FINAL SCENE BENCHMARK ==========");
-        System.out.println("Regular Grid ON  average:  " + avgGridOn + " ms");
-        System.out.println("Regular Grid OFF average:  " + avgGridOff + " ms");
+        System.out.println("==========================================================================");
+        System.out.println("                    MP2 FINAL SCENE - COMPARISON");
+        System.out.println("==========================================================================");
+        System.out.printf("%-48s | %-12s | %-10s%n", "Mode", "Average", "Speedup");
+        System.out.println("--------------------------------------------------------------------------");
 
-        if (avgGridOn > 0) {
-            double speedup = (double) avgGridOff / avgGridOn;
-            System.out.printf("Speedup: %.2fx%n", speedup);
-        }
+        printResultLine(
+                "Baseline: no threads + no Regular Grid",
+                baselineTime,
+                baselineTime
+        );
 
-        System.out.println("================================================");
+        printResultLine(
+                "Multithreading only: 4 threads + no Regular Grid",
+                multithreadingOnlyTime,
+                baselineTime
+        );
+
+        printResultLine(
+                "Regular Grid only: no threads + Regular Grid",
+                regularGridOnlyTime,
+                baselineTime
+        );
+
+        printResultLine(
+                "Full acceleration: 4 threads + Regular Grid",
+                fullAccelerationTime,
+                baselineTime
+        );
+
+        System.out.println("--------------------------------------------------------------------------");
+        System.out.printf(
+                "Speedup of multithreading only:       %.2fx%n",
+                baselineTime / multithreadingOnlyTime
+        );
+        System.out.printf(
+                "Speedup of Regular Grid only:         %.2fx%n",
+                baselineTime / regularGridOnlyTime
+        );
+        System.out.printf(
+                "Speedup of both combined:             %.2fx%n",
+                baselineTime / fullAccelerationTime
+        );
+        System.out.println();
+        System.out.printf(
+                "Full acceleration compared to Regular Grid only: %.2fx%n",
+                regularGridOnlyTime / fullAccelerationTime
+        );
+        System.out.printf(
+                "Full acceleration compared to 4 threads only:    %.2fx%n",
+                multithreadingOnlyTime / fullAccelerationTime
+        );
+        System.out.println("==========================================================================");
     }
 
     /**
-     * Renders the XML scene several times and returns the average render time.
+     * Measures the average rendering time for a scene.
      *
      * @param xmlPath XML scene path
-     * @param runs    number of measured runs
-     * @return average render time in milliseconds
+     * @param threads number of rendering threads
+     * @param label   readable mode name
+     * @return average rendering time in seconds
      */
-    private long renderAverageTime(String xmlPath, int runs) {
-        long totalTime = 0;
+    private double averageRenderTime(String xmlPath, int threads, String label) {
+        double totalTime = 0;
 
-        for (int i = 1; i <= runs; i++) {
-            long time = renderOnce(xmlPath);
+        System.out.println();
+        System.out.println("------------------------------------------------------------");
+        System.out.println(label);
+        System.out.println("XML: " + xmlPath);
+        System.out.println("Threads: " + threads);
+        System.out.println("------------------------------------------------------------");
 
-            totalTime += time;
+        for (int i = 1; i <= RUNS; i++) {
+            double currentTime = renderOnce(xmlPath, threads);
+            totalTime += currentTime;
 
-            System.out.println(xmlPath + " | run " + i + "/" + runs + ": " + time + " ms");
+            System.out.printf(
+                    "Run %d/%d: %.3f seconds%n",
+                    i,
+                    RUNS,
+                    currentTime
+            );
         }
 
-        return totalTime / runs;
+        double averageTime = totalTime / RUNS;
+
+        System.out.printf(
+                "Average: %.3f seconds%n",
+                averageTime
+        );
+
+        return averageTime;
     }
 
     /**
-     * Loads, builds, renders and writes one XML scene.
+     * Renders one scene once and returns the rendering time.
      *
      * @param xmlPath XML scene path
-     * @return render time in milliseconds
+     * @param threads number of rendering threads
+     * @return rendering time in seconds
      */
-    private long renderOnce(String xmlPath) {
-        Camera.Builder cameraBuilder = loadImage(xmlPath, true);
+    private double renderOnce(String xmlPath, int threads) {
+        Camera camera = loadImage(xmlPath, true)
+                .setMultithreading(threads)
+                .setDebugPrint(0)
+                .build();
 
-        Camera camera = cameraBuilder.build();
-
-        long start = System.nanoTime();
+        long startTime = System.nanoTime();
 
         camera.renderImage();
 
-        long end = System.nanoTime();
+        long endTime = System.nanoTime();
 
-
-        return (end - start) / 1_000_000;
+        return (endTime - startTime) / 1_000_000_000.0;
     }
+
+    /**
+     * Renders and writes one final image.
+     * <p>
+     * This method is not used for time measurement.
+     * It only creates a visible image file for presentation.
+     * </p>
+     *
+     * @param xmlPath   XML scene path
+     * @param threads   number of rendering threads
+     * @param imageName output image name
+     */
+    private void writeImage(String xmlPath, int threads, String imageName) {
+        Camera camera = loadImage(xmlPath, true)
+                .setMultithreading(threads)
+                .setDebugPrint(0)
+                .build();
+
+        camera.renderImage();
+        camera.writeToImage(imageName);
+
+        System.out.println("Image written: " + imageName);
+    }
+
+    /**
+     * Prints one line in the final benchmark table.
+     *
+     * @param label        readable mode name
+     * @param averageTime  average time in seconds
+     * @param baselineTime baseline time in seconds
+     */
+    private void printResultLine(String label, double averageTime, double baselineTime) {
+        System.out.printf(
+                "%-48s | %8.3f sec | %8.2fx%n",
+                label,
+                averageTime,
+                baselineTime / averageTime
+        );
+    }
+
+    @Test
+    void justImage() {
+        writeImage(
+                REGULAR_GRID_ON,
+                THREADS,
+                "mp2-final-just-image-four-threads-with-regular-grid"
+        );
+    }
+
 }
