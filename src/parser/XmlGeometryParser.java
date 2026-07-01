@@ -58,6 +58,12 @@ final class XmlGeometryParser {
         setRegularGrid(geometriesElement, scene);
     }
 
+    /**
+     * Sets the regular grid configuration for the scene's geometries based on the attributes of the geometries element.
+     *
+     * @param geometriesElement the geometries XML element
+     * @param scene             the scene to update
+     */
     private static void setRegularGrid(Element geometriesElement, Scene scene) {
         if (!geometriesElement.hasAttributes()) {
             scene.geometries.disableRegularGrid();
